@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10182a"><title>Mi espacio privado — Nova Apps</title>
+<style>
+:root{color-scheme:dark;--bg:#10182a;--surface:#18243a;--text:#f3f6ff;--muted:#aebbd2;--line:#33425e;--accent:#a5a6ff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,Arial;line-height:1.55}.wrap{width:min(920px,92%);margin:auto}header{padding:18px 0;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}a{color:var(--accent)}.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}h1{font-size:clamp(1.7rem,5vw,2.5rem)}h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.field{display:block;width:100%;margin:8px 0;padding:11px;border-radius:9px;border:1px solid var(--line);background:#0f1728;color:var(--text)}button{padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#252f4a;color:var(--text);font-weight:700;cursor:pointer;margin:3px}button.primary{background:#5556d8;border-color:#5556d8}.muted{color:var(--muted);font-size:.9rem}.row{border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere}.status{min-height:1.5em;color:#a5e6bb}.danger{color:#ffb3b3}.inline{display:flex;gap:8px;flex-wrap:wrap}.inline>*{flex:1}@media(max-width:680px){.grid{grid-template-columns:1fr}header{align-items:flex-start}}
+</style></head><body><div class="wrap">
+<header><strong>🔐 Mi espacio privado de NOVA</strong><a href="index.html">← Volver a Nova Apps</a></header>
+<h1>Recordatorios y bóveda privada</h1><p class="muted">Los recordatorios se guardan en este navegador. Las contraseñas se cifran antes de almacenarse localmente. No reutilices la contraseña maestra y no olvides que perderla implica perder el acceso a la bóveda.</p>
+<div class="grid">
+<section class="card"><h2>📅 Recordatorios</h2>
+<form id="remForm"><label>Título<input class="field" id="remTitle" maxlength="160" required placeholder="Cumpleaños, tarea, cita…"></label><label>Fecha y hora<input class="field" id="remDate" type="datetime-local" required></label><label>Detalles opcionales<textarea class="field" id="remNotes" maxlength="1000" rows="2"></textarea></label><button class="primary">Guardar recordatorio</button></form>
+<div class="inline"><button id="notifyBtn" type="button">Activar notificaciones</button><button id="exportEvents" type="button">Exportar .nova.ev</button><label class="field">Importar .nova.ev<input id="importEvents" type="file" accept=".nova.ev,.json,application/json"></label></div><div id="remStatus" class="status" aria-live="polite"></div><div id="remList"></div>
+</section>
+<section class="card"><h2>🔑 Bóveda de contraseñas</h2><p class="muted">Cifrado AES-GCM-256 con clave derivada por PBKDF2. Las credenciales nunca se envían al chat ni a la IA desde esta página.</p>
+<div id="vaultSetup"><label>Contraseña maestra<input id="master" class="field" type="password" autocomplete="new-password" minlength="10" placeholder="Mínimo 10 caracteres"></label><button id="vaultCreate" class="primary" type="button">Crear bóveda</button><button id="vaultUnlock" type="button">Desbloquear bóveda</button></div>
+<div id="vaultTools" hidden><form id="credForm"><label>Servicio<input id="credService" class="field" required maxlength="120" placeholder="Google, banco…"></label><label>Cuenta / usuario<input id="credUser" class="field" required maxlength="200" autocomplete="off"></label><label>Contraseña<input id="credPass" class="field" required maxlength="2000" autocomplete="new-password"></label><label>Notas (no incluir datos innecesarios)<input id="credNotes" class="field" maxlength="500"></label><button class="primary">Guardar credencial cifrada</button></form><div class="inline"><button id="vaultExport" type="button">Exportar .novapv cifrado</button><label class="field">Importar .novapv<input id="vaultImportFile" type="file" accept=".novapv,application/json"></label><button id="vaultLock" type="button">Bloquear</button></div><div id="credList"></div></div>
+<div id="vaultStatus" class="status" aria-live="polite"></div>
+<p class="muted">Seguridad: el cifrado protege los datos almacenados, pero no elimina riesgos del dispositivo comprometido, extensiones maliciosas o pérdida de la contraseña maestra. La copia en Internet todavía debe configurarse en Supabase; no se sincroniza automáticamente en esta versión.</p>
+</section></div>
+<section class="card"><h2>Preparado para sincronización con Supabase</h2><p>La bóveda está preparada para exportar un archivo cifrado. La sincronización en Internet se activará después de configurar las tablas, políticas RLS y funciones del servidor. No se guardarán contraseñas sin cifrar en Supabase.</p><p class="muted">Los recordatorios del navegador no garantizan avisos cuando el navegador está cerrado o el sistema suspende la página. Para notificaciones fiables se necesita un servicio compatible y permisos del dispositivo.</p></section>
+</div>
+<script src="js/nova/recordatorios-boveda.js"></script>
+<script>
+(()=>{"use strict";const $=id=>document.getElementById(id),P=window.NOVA_PERSONAL;
+function say(id,msg,err=false){$(id).textContent=msg;$(id).className=err?"status danger":"status"}
+function safe(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderRem(){const a=P.reminders().sort((x,y)=>x.date.localeCompare(y.date));$("remList").innerHTML=a.length?a.map(r=>`<div class="row"><strong>${safe(r.title)}</strong><br><span class="muted">${safe(new Date(r.date).toLocaleString())}</span>${r.notes?`<p>${safe(r.notes)}</p>`:""}<button data-del-rem="${safe(r.id)}">Eliminar</button></div>`).join(""):"<p class='muted'>No hay recordatorios guardados.</p>";}
+$("remForm").addEventListener("submit",e=>{e.preventDefault();let a=P.reminders();a.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),title:$("remTitle").value.trim(),date:$("remDate").value,notes:$("remNotes").value.trim(),created:new Date().toISOString()});P.saveReminders(a);e.target.reset();renderRem();say("remStatus","Recordatorio guardado en este dispositivo.");});
+$("remList").addEventListener("click",e=>{let id=e.target.dataset.delRem;if(!id)return;P.saveReminders(P.reminders().filter(r=>r.id!==id));renderRem();say("remStatus","Recordatorio eliminado.");});
+$("exportEvents").onclick=()=>{let blob=new Blob([JSON.stringify({format:"NOVA-EV",version:1,events:P.reminders()},null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="recordatorios.nova.ev";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+$("importEvents").onchange=async e=>{try{let f=e.target.files[0];if(!f)return;let o=JSON.parse(await f.text());let a=Array.isArray(o)?o:o.events;if((o.format&&o.format!=="NOVA-EV")||!Array.isArray(a))throw Error("El archivo no tiene un formato .nova.ev válido.");let valid=a.filter(r=>r&&typeof r.title==="string"&&typeof r.date==="string").map(r=>({id:String(r.id||Date.now()+Math.random()),title:r.title.slice(0,160),date:r.date,notes:String(r.notes||"").slice(0,1000),created:r.created||new Date().toISOString()}));P.saveReminders([...P.reminders(),...valid]);renderRem();say("remStatus","Importados "+valid.length+" recordatorios.");}catch(err){say("remStatus",err.message,true)}finally{e.target.value=""}};
+$("notifyBtn").onclick=async()=>{if(!("Notification"in window)){say("remStatus","Este navegador no admite notificaciones.",true);return}let p=await Notification.requestPermission();say("remStatus",p==="granted"?"Permiso concedido. La página debe permanecer abierta para comprobar avisos.":"No se concedió permiso.",p!=="granted")};
+async function renderCreds(){let a=await P.vaultList();$("credList").innerHTML=a.length?a.map(r=>`<div class="row"><strong>${safe(r.service)}</strong><br>Cuenta: ${safe(r.user)}<br><button data-show="${safe(r.id)}">Mostrar contraseña</button><button data-copy="${safe(r.id)}">Copiar</button><button data-del-cred="${safe(r.id)}">Eliminar</button><div id="secret-${safe(r.id)}"></div></div>`).join(""):"<p class='muted'>La bóveda está vacía.</p>";}
+async function unlock(){let pass=$("master").value;try{if(await P.vaultExists())await P.unlockVault(pass);else await P.createVault(pass);$("vaultTools").hidden=false;$("master").value="";await renderCreds();say("vaultStatus","Bóveda desbloqueada. La clave se mantiene solo en memoria mientras esta página esté abierta.");}catch(e){say("vaultStatus",e.message,true)}}
+$("vaultCreate").onclick=async()=>{if(await P.vaultExists()){say("vaultStatus","Ya existe una bóveda. Usa Desbloquear.",true);return}await unlock()};
+$("vaultUnlock").onclick=unlock;
+$("credForm").addEventListener("submit",async e=>{e.preventDefault();try{await P.vaultSave({service:$("credService").value.trim(),user:$("credUser").value.trim(),password:$("credPass").value,notes:$("credNotes").value.trim()});e.target.reset();await renderCreds();say("vaultStatus","Credencial guardada cifrada.");}catch(err){say("vaultStatus",err.message,true)}});
+$("credList").addEventListener("click",async e=>{try{let id=e.target.dataset.show||e.target.dataset.copy||e.target.dataset.delCred;if(!id)return;if(e.target.dataset.delCred){if(!confirm("¿Eliminar esta credencial de forma permanente?"))return;await P.vaultDelete(id);await renderCreds();say("vaultStatus","Credencial eliminada.");return}let r=(await P.vaultList()).find(x=>x.id===id);if(!r)return;if(e.target.dataset.show){$("secret-"+id).textContent="Contraseña: "+r.password;}else{await navigator.clipboard.writeText(r.password);say("vaultStatus","Contraseña copiada. Evita copiarla en dispositivos compartidos.");}}catch(err){say("vaultStatus",err.message,true)}});
+$("vaultExport").onclick=()=>P.exportEncrypted().catch(e=>say("vaultStatus",e.message,true));
+$("vaultImportFile").onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(!confirm("Importar reemplazará la bóveda local actual. ¿Continuar?"))return;await P.importEncrypted(f);$("vaultTools").hidden=true;say("vaultStatus","Archivo cifrado importado. Desbloquea la bóveda con su contraseña maestra.");}catch(err){say("vaultStatus",err.message,true)}finally{e.target.value=""}};
+$("vaultLock").onclick=()=>{P.lock();$("vaultTools").hidden=true;$("credList").replaceChildren();say("vaultStatus","Bóveda bloqueada.");};
+renderRem();
+function checkDueReminders(){
+  if(!("Notification" in window) || Notification.permission!=="granted") return;
+  const now=Date.now(), firedKey="nova_notified_events_v1";
+  let fired=[]; try{fired=JSON.parse(localStorage.getItem(firedKey)||"[]")}catch{}
+  const keep=fired.filter(x=>now-x.time<7*86400000);
+  for(const r of P.reminders()){
+    const when=new Date(r.date).getTime();
+    if(Number.isFinite(when)&&when<=now&&when>=now-60000&&!keep.some(x=>x.id===r.id)){
+      new Notification("NOVA: "+r.title,{body:r.notes||"Tienes un recordatorio pendiente."});
+      keep.push({id:r.id,time:now});
+    }
+  }
+  localStorage.setItem(firedKey,JSON.stringify(keep));
+}
+checkDueReminders();setInterval(checkDueReminders,30000);
+$("remDate").value=new Date(Date.now()+3600000).toISOString().slice(0,16);
+})();
+</script></body></html>

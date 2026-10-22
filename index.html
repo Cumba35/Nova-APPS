@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f7fb">
+<meta name="description" content="Nova Apps: aplicaciones Android, herramientas web y proyectos tecnológicos.">
+<title>Nova Apps — Aplicaciones y herramientas</title>
+
+<style>
+:root {
+  color-scheme: light;
+  --bg:#f5f7fb;
+  --surface:#fff;
+  --text:#182033;
+  --muted:#64708a;
+  --line:#e2e7f0;
+  --accent:#5b5ce2;
+  --soft:#eeeeff;
+  --chat-user:#5b5ce2;
+  --chat-user-text:#fff;
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:#0d1220;
+  --surface:#151d30;
+  --text:#f1f4ff;
+  --muted:#a8b2ca;
+  --line:#29344c;
+  --accent:#a5a6ff;
+  --soft:#25264a;
+  --chat-user:#5556d8;
+  --chat-user-text:#fff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,Arial,sans-serif;
+  line-height:1.6;
+}
+body,button,input,textarea,select { font-family:system-ui,Arial,sans-serif; }
+.wrap { width:min(1100px,92%); margin:auto; }
+header,footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px 0;
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--text);
+  text-decoration:none;
+  font-size:1.25rem;
+  font-weight:850;
+}
+.logo { width:44px; height:44px; object-fit:contain; }
+button,.btn,select,input,textarea { font:inherit; }
+button,.btn {
+  display:inline-block;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 14px;
+  background:var(--surface);
+  color:var(--text);
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+}
+button:disabled { opacity:.6; cursor:wait; }
+.primary {
+  background:var(--accent);
+  color:white;
+  border-color:var(--accent);
+}
+.hero { padding:42px 0 30px; }
+.hero h1 {
+  font-size:clamp(2.3rem,7vw,4.2rem);
+  line-height:1.1;
+  letter-spacing:-.04em;
+  margin:10px 0;
+}
+.hero h1 span { color:var(--accent); }
+p { color:var(--muted); }
+.buttons,.profile {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.card {
+  min-width:0;
+  padding:20px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:18px;
+}
+.features,.apps {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin:20px 0 35px;
+}
+.apps { grid-template-columns:repeat(2,minmax(0,1fr)); }
+section { padding:12px 0 24px; }
+.status,.tag {
+  display:inline-block;
+  padding:3px 9px;
+  margin:3px 4px 3px 0;
+  border-radius:20px;
+  background:var(--soft);
+  color:var(--accent);
+  font-size:.82rem;
+  font-weight:750;
+}
+.profile { justify-content:flex-end; min-width:0; }
+#profileName { max-width:220px; overflow-wrap:anywhere; }
+.avatar {
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--soft);
+}
+.menu { position:relative; min-width:0; }
+.menu-panel {
+  position:fixed;
+  top:120px;
+  right:4vw;
+  z-index:1000;
+  width:min(340px,92vw);
+  max-width:92vw;
+  max-height:calc(100dvh - 145px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:14px;
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 10px 30px #0005;
+}
+.menu-panel a,.menu-panel button {
+  display:block;
+  width:100%;
+  text-align:left;
+  margin:6px 0;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.field {
+  display:block;
+  width:100%;
+  max-width:480px;
+  margin:8px 0;
+  padding:11px;
+  color:var(--text);
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+footer {
+  border-top:1px solid var(--line);
+  flex-wrap:wrap;
+  font-size:.9rem;
+}
+a { overflow-wrap:anywhere; }
+[hidden] { display:none !important; }
+.message-status { overflow-wrap:anywhere; }
+.message-error { color:#c23b3b; }
+:root[data-theme="dark"] .message-error { color:#ffaaaa; }
+.message-success { color:#21834b; }
+:root[data-theme="dark"] .message-success { color:#8de0b0; }
+
+/* Botón flotante de NOVA IA */
+#novaAiLauncher {
+  position:fixed;
+  right:18px;
+  bottom:20px;
+  z-index:2000;
+  width:66px;
+  height:66px;
+  padding:5px;
+  border:2px solid var(--accent);
+  border-radius:50%;
+  background:var(--surface);
+  box-shadow:0 5px 22px #0004;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#novaAiLauncher img {
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:contain;
+}
+#novaAiLauncher:focus-visible,
+#novaChatClose:focus-visible,
+#novaChatSend:focus-visible {
+  outline:3px solid var(--accent);
+  outline-offset:3px;
+}
+
+/* Ventana del chat */
+#novaChatPanel {
+  position:fixed;
+  right:18px;
+  bottom:98px;
+  z-index:1999;
+  width:min(390px,calc(100vw - 24px));
+  height:min(570px,calc(100dvh - 125px));
+  min-height:320px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:0 12px 40px #0004;
+}
+.nova-chat-header {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border-bottom:1px solid var(--line);
+}
+.nova-chat-logo {
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  object-fit:contain;
+  border-radius:50%;
+}
+.nova-chat-heading { flex:1; min-width:0; }
+.nova-chat-heading strong { display:block; font-size:1rem; }
+.nova-chat-heading small {
+  display:block;
+  color:var(--muted);
+  font-size:.78rem;
+}
+#novaChatClose {
+  width:40px;
+  height:40px;
+  padding:0;
+  font-size:1.4rem;
+}
+#novaChatMessages {
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  scroll-behavior:smooth;
+}
+.nova-message {
+  max-width:90%;
+  width:fit-content;
+  padding:10px 13px;
+  border-radius:15px;
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+  line-height:1.5;
+  font-size:.94rem;
+}
+.nova-message.assistant {
+  align-self:flex-start;
+  color:var(--text);
+  background:var(--soft);
+  border-bottom-left-radius:4px;
+}
+.nova-message.user {
+  align-self:flex-end;
+  color:var(--chat-user-text);
+  background:var(--chat-user);
+  border-bottom-right-radius:4px;
+}
+.nova-message.error { border:1px solid #c85a5a; }
+.nova-chat-form {
+  padding:12px;
+  border-top:1px solid var(--line);
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+}
+#novaChatInput {
+  flex:1;
+  min-width:0;
+  min-height:44px;
+  max-height:110px;
+  resize:vertical;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--bg);
+  color:var(--text);
+}
+#novaChatSend { min-height:44px; padding:10px 13px; }
+.nova-chat-note {
+  margin:0;
+  padding:0 12px 8px;
+  font-size:.72rem;
+  text-align:center;
+}
+@media (max-width:650px) {
+  header { align-items:flex-start; flex-wrap:wrap; }
+  .brand { font-size:1.05rem; }
+  .logo { width:38px; height:38px; }
+  .profile { width:100%; justify-content:flex-start; gap:8px; }
+  #profileName { max-width:100%; font-size:.95rem; }
+  .features,.apps { grid-template-columns:1fr; }
+  .hero { padding:22px 0; }
+  .menu-panel {
+    top:12px;
+    right:4vw;
+    width:92vw;
+    max-width:92vw;
+    max-height:calc(100dvh - 24px);
+  }
+  #novaAiLauncher {
+    width:60px;
+    height:60px;
+    right:14px;
+    bottom:14px;
+  }
+  #novaChatPanel {
+    right:12px;
+    bottom:84px;
+    width:calc(100vw - 24px);
+    height:min(570px,calc(100dvh - 105px));
+    max-height:calc(100dvh - 105px);
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  #novaChatMessages { scroll-behavior:auto; }
+}
+</style>
+</head>
+
+<body>
+<header class="wrap">
+  <a class="brand" href="#inicio">
+    <img class="logo"
+      src="assets/images/logo/nova-apps-logo.png"
+      alt="Logo Nova Apps">
+    <span>Nova Apps</span>
+  </a>
+
+  <div class="profile">
+    <img id="avatar" class="avatar" alt="Foto de perfil" hidden>
+    <span id="profileName"></span>
+
+    <div class="menu">
+      <button id="menuButton" type="button"
+        aria-expanded="false" aria-controls="menuPanel">Cuenta ▾</button>
+
+      <div id="menuPanel" class="menu-panel" hidden>
+        <button id="loginButton" class="primary" type="button">
+          Iniciar sesión con Google
+        </button>
+        <button id="logoutButton" type="button" hidden>
+          Cerrar sesión
+        </button>
+        <a href="#inicio" data-close-menu>Inicio</a>
+        <a href="#catalogo" data-close-menu>Catálogo</a>
+        <a href="#publicar" data-close-menu>Publicaciones</a>
+        <a href="#reglas" data-close-menu>Reglas de Nova Apps</a>
+        <a href="#contacto" data-close-menu>Contacto</a>
+        <a href="mi-espacio.html">Mi espacio privado</a>
+        <a id="adminLink" href="admin.html" hidden>Administración</a>
+      </div>
+    </div>
+
+    <button id="themeButton" type="button">Modo oscuro</button>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero" id="inicio">
+    <p>TECNOLOGÍA ÚTIL · NOVA APPS</p>
+    <h1>Tus aplicaciones y proyectos,<br>
+      <span>en un solo lugar.</span>
+    </h1>
+    <p>Descubre aplicaciones Android, herramientas web, módulos, modelos y proyectos tecnológicos.</p>
+    <div class="buttons">
+      <a class="btn primary" href="#catalogo">Explorar catálogo</a>
+      <button id="shareButton" type="button">Compartir página</button>
+    </div>
+  </section>
+
+  <section class="wrap" id="cuenta">
+    <div class="card">
+      <h2>Tu cuenta de Nova Apps</h2>
+      <p id="authMessage" role="status" aria-live="polite">
+        Preparando conexión…
+      </p>
+      <p id="rankMessage">
+        Inicia sesión con Google para consultar tu rango.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap features">
+    <article class="card">
+      <h3>Aplicaciones Android</h3>
+      <p>Consulta proyectos y su estado de desarrollo.</p>
+    </article>
+    <article class="card">
+      <h3>Herramientas web</h3>
+      <p>Utiliza herramientas desde el navegador.</p>
+    </article>
+    <article class="card">
+      <h3>Proyectos tecnológicos</h3>
+      <p>Un catálogo para organizar futuras publicaciones.</p>
+    </article>
+  </section>
+
+  <section class="wrap" id="catalogo">
+    <h2>Catálogo de Nova Apps</h2>
+    <p>Busca por categoría, tipo de contenido o nombre.</p>
+
+    <label for="categoryFilter">Categoría</label>
+    <select id="categoryFilter" class="field">
+      <option value="todas">Todas las categorías</option>
+      <option>Conectividad y Redes</option>
+      <option>Finanzas</option>
+      <option>Comercio Electrónico</option>
+      <option>Administración</option>
+      <option>Edición</option>
+      <option>Programación</option>
+      <option>Salud</option>
+      <option>Deporte</option>
+      <option>Gestión de Empresas</option>
+      <option>Transportación</option>
+      <option>Envíos</option>
+      <option>Ropa</option>
+      <option>Higiene y Belleza</option>
+      <option>Seguridad</option>
+      <option>Música</option>
+      <option>Vídeo</option>
+      <option>Imagen</option>
+      <option>Documentos</option>
+      <option>Viajes</option>
+      <option>Educación</option>
+      <option>Entretenimiento</option>
+      <option>Productividad</option>
+      <option>Juegos</option>
+      <option>Otros</option>
+    </select>
+
+    <label for="typeFilter">Tipo de contenido</label>
+    <select id="typeFilter" class="field">
+      <option value="todos">Todos los tipos</option>
+      <option value="aplicacion">Aplicaciones</option>
+      <option value="modelo">Modelos</option>
+      <option value="modulo">Módulos</option>
+      <option value="proyecto">Proyectos</option>
+      <option value="otro">Otros</option>
+    </select>
+
+    <label for="searchInput">Buscar</label>
+    <input id="searchInput" class="field" type="search"
+      placeholder="Nombre o descripción">
+
+    <div id="appsList" class="apps"></div>
+    <p id="appsMessage" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="wrap" id="publicar">
+    <div class="card">
+      <h2>Publicaciones de usuarios</h2>
+      <p>La publicación de aplicaciones, modelos, módulos y proyectos requiere completar el formulario y configurar los permisos del servidor.</p>
+      <p>Esta sección es informativa; todavía no envía publicaciones al servidor.</p>
+    </div>
+  </section>
+
+  <section class="wrap" id="reglas">
+    <div class="card">
+      <h2>Reglas y seguridad</h2>
+      <p>Respeta a los demás, la privacidad, la propiedad intelectual y las leyes aplicables.</p>
+      <p>No se permite el acoso, la suplantación de identidad, el fraude, el contenido malicioso ni el abuso de los servicios.</p>
+      <p>Las denuncias deben incluir información verificable. Las decisiones graves requieren revisión humana y un procedimiento para apelar.</p>
+      <p>Las medidas pueden incluir advertencias, restricciones, suspensiones o expulsiones según la gravedad, las pruebas y las reglas publicadas.</p>
+    </div>
+  </section>
+
+  <section class="wrap" id="contacto">
+    <div class="card">
+      <h2>Contacto oficial</h2>
+      <p>Consultas, sugerencias y asistencia:</p>
+      <p><a href="mailto:cumba.anier@gmail.com">cumba.anier@gmail.com</a></p>
+      <a class="btn primary" href="https://github.com/Cumba35"
+        target="_blank" rel="noopener noreferrer">Perfil de GitHub</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>© <span id="year"></span> Nova Apps</span>
+  <a href="#inicio">Volver al inicio</a>
+</footer>
+
+<!-- Botón flotante de NOVA IA -->
+<button id="novaAiLauncher" type="button"
+  aria-label="Abrir chat de NOVA IA"
+  aria-expanded="false"
+  aria-controls="novaChatPanel"
+  title="Hablar con NOVA IA">
+  <img src="assets/icons/interface/nova-ia-icon.png"
+    alt="NOVA IA">
+</button>
+
+<!-- Ventana de conversación -->
+<section id="novaChatPanel" aria-label="Chat de NOVA IA" hidden>
+  <div class="nova-chat-header">
+    <img class="nova-chat-logo"
+      src="assets/icons/interface/nova-ia-icon.png"
+      alt="">
+    <div class="nova-chat-heading">
+      <strong>NOVA IA</strong>
+      <small>Asistente de Nova Apps</small>
+    </div>
+    <button id="novaChatClose" type="button"
+      aria-label="Cerrar chat">×</button>
+  </div>
+
+  <div id="novaChatMessages" role="log"
+    aria-live="polite" aria-relevant="additions text">
+    <div class="nova-message assistant">Hola, soy NOVA IA, el asistente de Nova Apps. ¿En qué puedo ayudarte?</div>
+  </div>
+
+  <form id="novaChatForm" class="nova-chat-form">
+    <textarea id="novaChatInput" rows="1" maxlength="4000"
+      placeholder="Escribe tu pregunta..."
+      aria-label="Mensaje para NOVA IA" required></textarea>
+    <button id="novaChatSend" class="primary" type="submit"
+      aria-label="Enviar mensaje">Enviar</button>
+  </form>
+  <p class="nova-chat-note">No compartas contraseñas ni datos privados.</p>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/nova/recordatorios-boveda.js"></script>
+<script>
+"use strict";
+
+const SUPABASE_URL = "https://suirbghmnuxixktzkrze.supabase.co";
+const SUPABASE_KEY = "sb_publishable_1ZmYJ5J-A8jGDIcUIOiY3g_dYOKdnIp";
+const OWNER_UID = "e2b76b60-09b4-4e01-a93f-00c9bd7e257e";
+
+/*
+  Esta ruta debe corresponder a una Edge Function desplegada
+  y configurada en tu proyecto Supabase.
+*/
+const NOVA_IA_ENDPOINT =
+  SUPABASE_URL + "/functions/v1/nova-ia";
+
+const $ = id => document.getElementById(id);
+
+let db = null;
+let localProjects = [];
+let publishedProjects = [];
+let chatBusy = false;
+let currentUser = null;
+
+$("year").textContent = new Date().getFullYear();
+
+/* Proyectos locales: se muestran aunque Supabase falle. */
+localProjects = [
+  {
+    name:"Nova AI",
+    description:"Asistente de inteligencia artificial de Nova.",
+    category:"Programación",
+    type:"aplicacion",
+    status:"En desarrollo",
+    url:""
+  },
+  {
+    name:"Bloques",
+    description:"Proyecto de herramientas basadas en bloques.",
+    category:"Programación",
+    type:"proyecto",
+    status:"En desarrollo",
+    url:""
+  },
+  {
+    name:"Contador CUP",
+    description:"Herramienta para contar efectivo en pesos cubanos.",
+    category:"Finanzas",
+    type:"aplicacion",
+    status:"En desarrollo",
+    url:""
+  },
+  {
+    name:"Nova WiFi Manager",
+    description:"Proyecto de administración de conexiones WiFi compatibles.",
+    category:"Conectividad y Redes",
+    type:"proyecto",
+    status:"Planificado",
+    url:""
+  },
+  {
+    name:"Radio Cubana",
+    description:"Proyecto de acceso a contenidos de radio.",
+    category:"Música",
+    type:"proyecto",
+    status:"Planificado",
+    url:""
+  },
+  {
+    name:"Calculadora Nova",
+    description:"Proyecto de calculadora de Nova Apps.",
+    category:"Productividad",
+    type:"aplicacion",
+    status:"Planificado",
+    url:""
+  },
+  {
+    name:"Banco Monetario",
+    description:"Proyecto financiero sujeto a requisitos de seguridad e integración.",
+    category:"Finanzas",
+    type:"proyecto",
+    status:"Planificado",
+    url:""
+  },
+  {
+    name:"Gestor de Ventas",
+    description:"Proyecto para organizar ventas e inventario.",
+    category:"Gestión de Empresas",
+    type:"aplicacion",
+    status:"Planificado",
+    url:""
+  }
+];
+
+/* Tema claro y oscuro */
+function setTheme(dark) {
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  $("themeButton").textContent = dark ? "Modo claro" : "Modo oscuro";
+  document.querySelector('meta[name="theme-color"]').content =
+    dark ? "#0d1220" : "#f5f7fb";
+}
+
+try {
+  setTheme(localStorage.getItem("nova-theme") === "dark");
+} catch {
+  setTheme(false);
+}
+
+$("themeButton").addEventListener("click", () => {
+  const dark = document.documentElement.dataset.theme !== "dark";
+  setTheme(dark);
+  try {
+    localStorage.setItem("nova-theme", dark ? "dark" : "light");
+  } catch {}
+});
+
+/* Menú de cuenta */
+function closeMenu() {
+  $("menuPanel").hidden = true;
+  $("menuButton").setAttribute("aria-expanded", "false");
+}
+
+$("menuButton").addEventListener("click", () => {
+  const panel = $("menuPanel");
+  panel.hidden = !panel.hidden;
+  $("menuButton").setAttribute("aria-expanded", String(!panel.hidden));
+});
+
+document.querySelectorAll("[data-close-menu]").forEach(link => {
+  link.addEventListener("click", closeMenu);
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    closeMenu();
+    closeNovaChat();
+  }
+});
+
+document.addEventListener("click", event => {
+  if (!$("menuPanel").hidden && !event.target.closest(".menu")) {
+    closeMenu();
+  }
+});
+
+/* Compartir página */
+$("shareButton").addEventListener("click", async () => {
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title:"Nova Apps",
+        text:"Descubre Nova Apps",
+        url:location.href
+      });
+    } else {
+      prompt("Copia el enlace de Nova Apps:", location.href);
+    }
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      prompt("Copia el enlace de Nova Apps:", location.href);
+    }
+  }
+});
+
+/* Catálogo */
+function safeUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function renderApps() {
+  const category = $("categoryFilter").value;
+  const type = $("typeFilter").value;
+  const query = $("searchInput").value.trim().toLowerCase();
+
+  const publishedNames = new Set(
+    publishedProjects.map(app => app.name.trim().toLowerCase())
+  );
+
+  const allProjects = [
+    ...localProjects.filter(
+      app => !publishedNames.has(app.name.trim().toLowerCase())
+    ),
+    ...publishedProjects
+  ];
+
+  const filtered = allProjects.filter(app =>
+    (category === "todas" || app.category === category) &&
+    (type === "todos" || app.type === type) &&
+    (app.name + " " + app.description).toLowerCase().includes(query)
+  );
+
+  const list = $("appsList");
+  list.replaceChildren();
+
+  if (!filtered.length) {
+    const paragraph = document.createElement("p");
+    paragraph.textContent = "No se encontraron proyectos con esos filtros.";
+    list.append(paragraph);
+    $("appsMessage").textContent = "";
+    return;
+  }
+
+  const typeNames = {
+    aplicacion:"Aplicación",
+    modelo:"Modelo",
+    modulo:"Módulo",
+    proyecto:"Proyecto",
+    otro:"Otro"
+  };
+
+  for (const app of filtered) {
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const title = document.createElement("h3");
+    title.textContent = app.name;
+
+    const description = document.createElement("p");
+    description.textContent = app.description || "Sin descripción.";
+
+    const categoryTag = document.createElement("span");
+    categoryTag.className = "tag";
+    categoryTag.textContent = app.category || "Otros";
+
+    const typeTag = document.createElement("span");
+    typeTag.className = "tag";
+    typeTag.textContent = typeNames[app.type] || "Otro";
+
+    const status = document.createElement("span");
+    status.className = "status";
+    status.textContent = app.status || "Publicado";
+
+    card.append(title, description, categoryTag, typeTag, status);
+
+    if (app.version) {
+      const version = document.createElement("p");
+      version.textContent = "Versión: " + app.version;
+      card.append(version);
+    }
+
+    const url = safeUrl(app.url);
+    if (url) {
+      const paragraph = document.createElement("p");
+      const link = document.createElement("a");
+      link.className = "btn primary";
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Abrir publicación";
+      paragraph.append(link);
+      card.append(paragraph);
+    }
+
+    list.append(card);
+  }
+
+  $("appsMessage").textContent = "Proyectos mostrados: " + filtered.length;
+}
+
+$("categoryFilter").addEventListener("change", renderApps);
+$("typeFilter").addEventListener("change", renderApps);
+$("searchInput").addEventListener("input", renderApps);
+
+/*
+  Carga publicaciones desde la tabla apps que ya utiliza Nova Apps.
+  Si la consulta falla, conserva y muestra el catálogo local.
+*/
+async function loadPublishedPublications() {
+  if (!db) {
+    renderApps();
+    return;
+  }
+
+  $("appsMessage").textContent = "Cargando publicaciones…";
+
+  const { data, error } = await db
+    .from("apps")
+    .select("id,name,description,url,status,published")
+    .eq("published", true)
+    .order("id", { ascending:false });
+
+  if (error) {
+    console.error("Error al cargar apps:", error);
+    $("appsMessage").textContent =
+      "No se pudieron cargar las publicaciones del servidor. Se mantienen los proyectos locales.";
+    renderApps();
+    return;
+  }
+
+  publishedProjects = (data || []).map(item => ({
+    id:item.id,
+    name:item.name || "Aplicación sin nombre",
+    description:item.description || "",
+    category:"Otros",
+    type:"aplicacion",
+    status:item.status || "Publicado",
+    url:item.url || ""
+  }));
+
+  renderApps();
+}
+
+/* Perfil y rango del usuario */
+function renderProfile(user) {
+  currentUser = user || null;
+
+  $("loginButton").hidden = !!user;
+  $("logoutButton").hidden = !user;
+  $("avatar").hidden = !user;
+  $("adminLink").hidden = !user || user.id !== OWNER_UID;
+
+  if (!user) {
+    $("profileName").textContent = "";
+    $("avatar").removeAttribute("src");
+    $("authMessage").textContent = "No has iniciado sesión.";
+    $("rankMessage").textContent =
+      "Inicia sesión con Google para consultar tu rango.";
+    return;
+  }
+
+  const metadata = user.user_metadata || {};
+
+  $("profileName").textContent =
+    metadata.full_name || metadata.name || user.email || "Usuario";
+
+  const avatar = metadata.avatar_url || metadata.picture || "";
+
+  if (avatar) {
+    $("avatar").src = avatar;
+    $("avatar").hidden = false;
+  } else {
+    $("avatar").removeAttribute("src");
+    $("avatar").hidden = true;
+  }
+
+  $("authMessage").textContent =
+    "Sesión iniciada" + (user.email ? " como " + user.email : "") + ".";
+
+  $("rankMessage").textContent = "Consultando rango…";
+  loadMyRank(user);
+}
+
+async function loadMyRank(user) {
+  if (!db || !user) return;
+
+  if (user.id === OWNER_UID) {
+    $("rankMessage").textContent = "Rango: Propietario";
+  }
+
+  const { data, error } = await db
+    .from("nova_user_profiles")
+    .select("rango")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  // Evita mostrar el resultado de una consulta antigua si cambió la sesión.
+  if (!currentUser || currentUser.id !== user.id) return;
+
+  if (error) {
+    console.error("No se pudo consultar el rango:", error);
+    if (user.id !== OWNER_UID) {
+      $("rankMessage").textContent =
+        "No se pudo consultar tu rango. Comprueba las políticas RLS de nova_user_profiles.";
+    }
+    return;
+  }
+
+  if (!data) {
+    if (user.id === OWNER_UID) {
+      $("rankMessage").textContent =
+        "Rango: Propietario. El perfil no se pudo leer desde la tabla.";
+    } else {
+      $("rankMessage").textContent =
+        "Tu cuenta inició sesión, pero aún no tiene un perfil de rango.";
+    }
+    return;
+  }
+
+  $("rankMessage").textContent = "Rango: " + data.rango;
+}
+
+/* Autenticación */
+async function start() {
+  renderApps();
+
+  if (!window.supabase || !window.supabase.createClient) {
+    $("authMessage").textContent =
+      "No se pudo cargar Supabase. Comprueba tu conexión.";
+    $("appsMessage").textContent =
+      "Supabase no está disponible; se muestran los proyectos locales.";
+    renderProfile(null);
+    return;
+  }
+
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true
+    }
+  });
+
+  db.auth.onAuthStateChange((_event, session) => {
+    renderProfile(session?.user || null);
+  });
+
+  const { data, error } = await db.auth.getUser();
+
+  if (error) {
+    console.warn("Consulta de sesión:", error.message);
+  }
+
+  renderProfile(data?.user || null);
+  await loadPublishedPublications();
+}
+
+$("loginButton").addEventListener("click", async () => {
+  if (!db) return;
+
+  $("loginButton").disabled = true;
+  $("authMessage").textContent = "Conectando con Google…";
+
+  const { error } = await db.auth.signInWithOAuth({
+    provider:"google",
+    options:{
+      redirectTo:location.origin + location.pathname
+    }
+  });
+
+  if (error) {
+    $("authMessage").textContent =
+      "Error de inicio de sesión: " + error.message;
+    $("loginButton").disabled = false;
+  }
+});
+
+$("logoutButton").addEventListener("click", async () => {
+  if (!db) return;
+
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    $("authMessage").textContent =
+      "No se pudo cerrar sesión: " + error.message;
+    return;
+  }
+
+  renderProfile(null);
+  closeMenu();
+});
+
+/* Chat de NOVA IA */
+function addChatMessage(text, role, isError = false) {
+  const message = document.createElement("div");
+  message.className = "nova-message " + role +
+    (isError ? " error" : "");
+  message.textContent = text;
+  $("novaChatMessages").append(message);
+  $("novaChatMessages").scrollTop =
+    $("novaChatMessages").scrollHeight;
+  return message;
+}
+
+function openNovaChat() {
+  $("novaChatPanel").hidden = false;
+  $("novaAiLauncher").setAttribute("aria-expanded", "true");
+  $("novaChatInput").focus();
+}
+
+function closeNovaChat() {
+  const panel = $("novaChatPanel");
+  if (!panel) return;
+  panel.hidden = true;
+  $("novaAiLauncher").setAttribute("aria-expanded", "false");
+}
+
+$("novaAiLauncher").addEventListener("click", () => {
+  if ($("novaChatPanel").hidden) {
+    openNovaChat();
+  } else {
+    closeNovaChat();
+  }
+});
+
+$("novaChatClose").addEventListener("click", closeNovaChat);
+
+$("novaChatForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (chatBusy) return;
+
+  const input = $("novaChatInput");
+  const sendButton = $("novaChatSend");
+  const message = input.value.trim();
+
+  if (!message) {
+    input.focus();
+    return;
+  }
+
+  chatBusy = true;
+  sendButton.disabled = true;
+  input.disabled = true;
+
+  addChatMessage(message, "user");
+  input.value = "";
+
+  const pending = addChatMessage("NOVA IA está pensando…", "assistant");
+
+  try {
+    // Protección local: nunca enviar consultas sobre contraseñas a NOVA IA.
+    const sensitivePassword = /contraseñ|password|clave|credencial|código de acceso|codigo de acceso|pin de|token de/i.test(message);
+    if (sensitivePassword) {
+      pending.textContent = "Por seguridad, esta consulta no se envió a NOVA IA. Abre Cuenta → Mi espacio privado, desbloquea la bóveda y busca la cuenta. Las contraseñas solo se consultan allí.";
+      return;
+    }
+    const asksReminders = /mis recordatorios|qué tengo pendiente|que tengo pendiente|mis eventos|próximos eventos|proximos eventos|cumpleaños próximos|cumpleanos proximos/i.test(message);
+    if (asksReminders && window.NOVA_PERSONAL) {
+      const items = window.NOVA_PERSONAL.reminders().filter(r => r && r.title && r.date).sort((a,b)=>new Date(a.date)-new Date(b.date));
+      pending.textContent = items.length
+        ? "Tus recordatorios guardados en este navegador:\\n" + items.map(r => "• " + r.title + " — " + new Date(r.date).toLocaleString() + (r.notes ? " (" + r.notes + ")" : "")).join("\n")
+        : "No tienes recordatorios guardados en este navegador. Abre Cuenta → Mi espacio privado para añadir uno.";
+      return;
+    }
+    const wantsRemember = /^(recuerda|recuérdame|recordar|anota|guarda un recordatorio)/i.test(message);
+    if (wantsRemember) {
+      pending.textContent = "Para guardar el recordatorio con fecha y hora, abre Cuenta → Mi espacio privado → Recordatorios. Allí quedará guardado en este navegador y podrás exportarlo como .nova.ev.";
+      return;
+    }
+    const response = await fetch(NOVA_IA_ENDPOINT, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "apikey":SUPABASE_KEY,
+        "Authorization":"Bearer " + SUPABASE_KEY
+      },
+      body:JSON.stringify({ message })
+    });
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch {}
+
+    if (!response.ok) {
+      let explanation = data.error ||
+        "No se pudo conectar con NOVA IA.";
+
+      if (response.status === 401 || response.status === 403) {
+        explanation =
+          "Supabase rechazó la solicitud. Comprueba la autenticación y la configuración de la función nova-ia.";
+      } else if (response.status === 404) {
+        explanation =
+          "La función nova-ia no existe en esa dirección o no está desplegada.";
+      } else if (response.status === 429) {
+        explanation =
+          "Se alcanzó un límite de solicitudes. Espera un momento e inténtalo de nuevo.";
+      }
+
+      throw new Error(explanation);
+    }
+
+    const answer =
+      typeof data.answer === "string" ? data.answer :
+      typeof data.text === "string" ? data.text :
+      typeof data.response === "string" ? data.response : "";
+
+    if (!answer.trim()) {
+      throw new Error(
+        "La función respondió, pero no devolvió un campo answer, text o response con contenido."
+      );
+    }
+
+    pending.textContent = answer;
+  } catch (error) {
+    console.error("Error del chat NOVA IA:", error);
+    pending.textContent =
+      "No se pudo obtener una respuesta. " +
+      (error.message || "Comprueba tu conexión e inténtalo de nuevo.");
+    pending.classList.add("error");
+  } finally {
+    chatBusy = false;
+    sendButton.disabled = false;
+    input.disabled = false;
+    input.focus();
+    $("novaChatMessages").scrollTop =
+      $("novaChatMessages").scrollHeight;
+  }
+});
+
+start();
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101426">
+<title>Administración · Nova Apps</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#101426;color:#f4f6ff;font-family:system-ui,sans-serif}
+main{max-width:850px;margin:auto}
+section{background:#1b2239;padding:18px;border-radius:14px;margin:16px 0}
+.hidden{display:none!important}
+.muted,small{color:#bdc7e3}
+#message{white-space:pre-wrap;overflow-wrap:anywhere}
+button{width:100%;padding:12px;border:0;border-radius:9px;margin:6px 0;background:#7779ff;color:white;font:inherit;font-weight:700}
+button.secondary{background:#35405e}
+.nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.nav a{display:block;background:#283250;border:1px solid #414b6b;padding:18px 12px;border-radius:12px;color:white;text-decoration:none;font-weight:700;min-height:80px}
+a.back{color:#a5b4fc}
+</style>
+</head>
+<body>
+<main>
+<h1>Nova Apps · Administración</h1>
+<p class="muted">Selecciona una herramienta administrativa.</p>
+<p id="message" role="status" aria-live="polite">Comprobando sesión...</p>
+
+<section id="login" class="hidden">
+<h2>Iniciar sesión</h2>
+<p>Accede con la cuenta de Google autorizada.</p>
+<button id="loginBtn">Iniciar sesión con Google</button>
+</section>
+
+<section id="panel" class="hidden">
+<p id="account" class="muted"></p>
+<button id="logoutBtn" class="secondary">Cerrar sesión</button>
+<h2>Herramientas</h2>
+<nav class="nav">
+<a href="./admin-apps.html">📦 Gestión de aplicaciones</a>
+<a href="./admin-diseno.html">🎨 Diseño de la página</a>
+<a href="./admin-rangos.html">👥 Usuarios y rangos</a>
+<a href="./admin-config.html">⚙️ Configuración</a>
+</nav>
+</section>
+
+<p><a class="back" href="./">Volver a Nova Apps</a></p>
+</main>
+
+<script type="module">
+import {
+  guardPage,
+  setupAuth,
+  supabase
+} from './admin-core.js';
+
+setupAuth();
+
+const ok = await guardPage();
+
+if (ok) {
+  document.querySelector('#message').textContent =
+    'Sesión autorizada. Selecciona una herramienta.';
+}
+</script>
+</body>
+</html>

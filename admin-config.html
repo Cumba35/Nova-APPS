@@ -1,0 +1,114 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101426">
+<title>Configuración · Nova Apps</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:14px;background:#101426;color:#f4f6ff;font-family:system-ui,sans-serif}
+main{max-width:850px;margin:auto}
+section,.result{background:#1b2239;padding:16px;border-radius:12px;margin:14px 0}
+button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:8px;background:#7779ff;color:white;font:inherit;font-weight:700}
+button.secondary{background:#35405e}
+.hidden{display:none!important}
+.muted,small{color:#bdc7e3}
+#message{white-space:pre-wrap;overflow-wrap:anywhere}
+.nav{display:flex;flex-wrap:wrap;gap:8px}
+.nav a{padding:8px;background:#283250;border-radius:8px;color:white;text-decoration:none}
+.result{overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<main>
+<h1>Configuración y estado</h1>
+<p class="muted">Comprueba la conexión y los permisos de las tablas de Nova Apps.</p>
+<p id="message" role="status">Preparando conexión...</p>
+
+<section id="login" class="hidden">
+<h2>Iniciar sesión</h2>
+<button id="loginBtn">Iniciar sesión con Google</button>
+</section>
+
+<section id="panel" class="hidden">
+<p id="account" class="muted"></p>
+<nav class="nav">
+<a href="./admin.html">Menú principal</a>
+<a href="./admin-apps.html">Aplicaciones</a>
+<a href="./admin-diseno.html">Diseño</a>
+<a href="./admin-rangos.html">Rangos</a>
+</nav>
+<button id="logoutBtn" class="secondary">Cerrar sesión</button>
+</section>
+
+<div id="content" class="hidden">
+<section>
+<h2>Comprobación de tablas</h2>
+<p>La prueba intenta leer un registro de cada tabla. No modifica datos ni crea tablas o políticas.</p>
+<button id="checkBtn">Comprobar conexión</button>
+<div id="checkResults"></div>
+</section>
+
+<section>
+<h2>Seguridad</h2>
+<ul>
+<li>No publiques claves secretas ni claves <code>service_role</code> en el navegador.</li>
+<li>Las políticas RLS deben proteger las operaciones de lectura, inserción, actualización y eliminación.</li>
+<li>La restricción del propietario en la interfaz no sustituye las políticas de la base de datos.</li>
+<li>La página pública solo mostrará la configuración publicada si <code>index.html</code> la lee y aplica.</li>
+</ul>
+</section>
+</div>
+</main>
+
+<script type="module">
+import {
+  $, supabase, guardPage, setupAuth, say
+} from './admin-core.js';
+
+setupAuth();
+
+const tables = [
+  {label:'Catálogo de aplicaciones', table:'apps', column:'id'},
+  {label:'Perfiles y rangos', table:'nova_user_profiles', column:'user_id'},
+  {label:'Borrador de la página', table:'site_config_draft', column:'id'},
+  {label:'Configuración publicada', table:'site_config_published', column:'id'}
+];
+
+async function checkStatus() {
+  const box = $('#checkResults');
+  box.replaceChildren();
+  say('Comprobando acceso a las tablas...');
+
+  for (const item of tables) {
+    const row = document.createElement('div');
+    row.className = 'result';
+    row.textContent = item.label + ': comprobando...';
+    box.append(row);
+
+    const {error} = await supabase
+      .from(item.table)
+      .select(item.column)
+      .limit(1);
+
+    row.textContent = item.label + ': ' +
+      (error
+        ? 'No disponible — ' + error.message
+        : 'consulta permitida');
+  }
+
+  say('Comprobación terminada. Un resultado correcto confirma la lectura, no todas las operaciones de escritura.');
+}
+
+$('#checkBtn').onclick = checkStatus;
+
+const ok = await guardPage();
+if (ok) {
+  $('#content').classList.remove('hidden');
+  await checkStatus();
+}
+</script>
+</body>
+</html>

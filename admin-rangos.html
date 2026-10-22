@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <title>Nova Apps — Administrar rangos</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101426;
+      --panel: #191f35;
+      --panel2: #222a43;
+      --text: #f3f5ff;
+      --muted: #aeb8d4;
+      --accent: #a5a6ff;
+      --border: #343d5b;
+      --danger: #ff9292;
+      --success: #8de0b0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 18px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    main {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.7rem;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+    }
+
+    p {
+      line-height: 1.5;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .panel {
+      margin-top: 16px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    button, select {
+      width: 100%;
+      min-height: 45px;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font: inherit;
+    }
+
+    button {
+      background: var(--accent);
+      color: #111329;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      color: var(--text);
+      background: var(--panel2);
+      border: 1px solid var(--border);
+    }
+
+    button:disabled, select:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    select {
+      color: var(--text);
+      background: var(--panel2);
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    #message {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .profile {
+      margin-top: 12px;
+      padding: 14px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .profile strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .profile select {
+      margin-top: 8px;
+    }
+
+    .status-error {
+      color: var(--danger);
+    }
+
+    .status-success {
+      color: var(--success);
+    }
+
+    .rank-icon {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .row button {
+      flex: 1 1 160px;
+    }
+
+    code {
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>Administrar rangos</h1>
+  <p class="muted">
+    Panel privado para consultar perfiles y administrar sus rangos.
+  </p>
+
+  <section id="login" class="panel">
+    <h2>Iniciar sesión</h2>
+    <p>Entra con la cuenta de Google autorizada como propietaria.</p>
+    <button id="loginBtn" type="button">Iniciar sesión con Google</button>
+  </section>
+
+  <section id="panel" class="hidden">
+    <div class="panel">
+      <p id="account" class="muted">Comprobando sesión...</p>
+      <div class="row">
+        <button id="refreshRanksBtn" type="button" class="secondary">
+          Actualizar rangos
+        </button>
+        <button id="logoutBtn" type="button" class="secondary">
+          Cerrar sesión
+        </button>
+      </div>
+      <p id="message" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Asignar rango</h2>
+
+      <label for="rankUser">Cuenta</label>
+      <select id="rankUser" disabled>
+        <option value="">Cargando cuentas...</option>
+      </select>
+
+      <label for="rankChoice">Nuevo rango</label>
+      <select id="rankChoice">
+        <option value="Administrador">Administrador</option>
+        <option value="Inspectores">Inspectores</option>
+        <option value="Usuario VIP">Usuario VIP</option>
+        <option value="Usuario">Usuario</option>
+        <option value="Visitante">Visitante</option>
+      </select>
+
+      <button id="saveRankBtn" type="button">
+        Guardar rango
+      </button>
+    </div>
+
+    <div class="panel">
+      <h2>Cuentas y rangos registrados</h2>
+      <p class="muted">
+        La lista muestra los perfiles guardados en la tabla
+        <code>nova_user_profiles</code>. No crea automáticamente perfiles
+        para todas las cuentas de Google.
+      </p>
+      <div id="rankList"></div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  import {
+    $,
+    supabase,
+    guardPage,
+    setupAuth,
+    say,
+    RANKS,
+    RANK_ASSETS,
+    RANK_ICON_BASE
+  } from './admin-core.js';
+
+  setupAuth();
+
+  const login = $('#login');
+  const panel = $('#panel');
+  const selectUser = $('#rankUser');
+  const selectRank = $('#rankChoice');
+  const list = $('#rankList');
+  const refreshButton = $('#refreshRanksBtn');
+  const saveButton = $('#saveRankBtn');
+
+  let profiles = [];
+  let busy = false;
+
+  function showMessage(message, type = '') {
+    const el = $('#message');
+    el.textContent = message;
+    el.className = type ? `status-${type}` : '';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[char]);
+  }
+
+  function rankOptions(currentRank) {
+    return RANKS
+      .filter(rank => rank !== 'Propietario')
+      .map(rank =>
+        `<option value="${escapeHtml(rank)}"
+          ${rank === currentRank ? 'selected' : ''}>
+          ${escapeHtml(rank)}
+        </option>`
+      ).join('');
+  }
+
+  function profileLabel(profile) {
+    return profile.user_id + ' — ' + (profile.rango || 'Usuario');
+  }
+
+  function renderProfiles() {
+    selectUser.replaceChildren();
+    list.replaceChildren();
+
+    if (!profiles.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'No hay perfiles registrados';
+      selectUser.append(option);
+
+      list.textContent =
+        'No se encontraron perfiles en nova_user_profiles. ' +
+        'Esto no significa que no existan usuarios en Auth; ' +
+        'esta página solo consulta la tabla de perfiles.';
+      return;
+    }
+
+    for (const profile of profiles) {
+      const option = document.createElement('option');
+      option.value = profile.user_id;
+      option.textContent = profileLabel(profile);
+      selectUser.append(option);
+    }
+
+    for (const profile of profiles) {
+      const card = document.createElement('article');
+      card.className = 'profile';
+
+      const title = document.createElement('strong');
+      title.textContent = 'Rango: ' + (profile.rango || 'Usuario');
+
+      const id = document.createElement('p');
+      id.textContent = 'ID: ' + profile.user_id;
+
+      const updated = document.createElement('p');
+      updated.className = 'muted';
+      updated.textContent = profile.updated_at
+        ? 'Actualizado: ' + new Date(profile.updated_at).toLocaleString()
+        : 'Sin fecha de actualización';
+
+      const asset = RANK_ASSETS[profile.rango];
+      if (asset) {
+        const image = document.createElement('img');
+        image.className = 'rank-icon';
+        image.alt = 'Icono del rango ' + profile.rango;
+        image.src = RANK_ICON_BASE + asset.file;
+        image.onerror = () => image.remove();
+        card.append(image);
+      }
+
+      card.append(title, id, updated);
+      list.append(card);
+    }
+
+    selectRank.value = profiles.find(
+      profile => profile.user_id === selectUser.value
+    )?.rango || 'Usuario';
+  }
+
+  async function loadRanks() {
+    if (busy) return;
+    busy = true;
+
+    selectUser.disabled = true;
+    refreshButton.disabled = true;
+    saveButton.disabled = true;
+    selectUser.replaceChildren();
+    list.replaceChildren();
+
+    showMessage('Consultando perfiles en Supabase...');
+
+    try {
+      // Diagnóstico: consulta directa, sin ordenar los resultados.
+      const { data, error } = await supabase
+        .from('nova_user_profiles')
+        .select('user_id,rango,updated_at');
+
+      if (error) {
+        console.error('Error cargando rangos:', error);
+        showMessage(
+          'No se pudieron cargar los rangos.\n' +
+          'Código: ' + (error.code || 'no disponible') + '\n' +
+          'Mensaje: ' + error.message + '\n' +
+          'Detalle: ' + (error.details || 'sin detalle') + '\n' +
+          'Consejo: comprueba las políticas RLS y la respuesta de Supabase.',
+          'error'
+        );
+        return;
+      }
+
+      profiles = Array.isArray(data) ? data : [];
+
+      // Orden local en JavaScript, sin pedir ordenamiento a PostgreSQL.
+      profiles.sort((a, b) =>
+        String(a.user_id || '').localeCompare(String(b.user_id || ''))
+      );
+
+      renderProfiles();
+
+      showMessage(
+        profiles.length
+          ? 'Perfiles cargados: ' + profiles.length
+          : 'La consulta funcionó, pero la tabla no contiene perfiles visibles.',
+        profiles.length ? 'success' : ''
+      );
+    } catch (error) {
+      console.error('Error inesperado cargando rangos:', error);
+      showMessage(
+        'Error inesperado: ' + (error?.message || String(error)),
+        'error'
+      );
+    } finally {
+      selectUser.disabled = profiles.length === 0;
+      refreshButton.disabled = false;
+      saveButton.disabled = profiles.length === 0;
+      busy = false;
+    }
+  }
+
+  async function saveRank() {
+    if (busy) return;
+
+    const userId = selectUser.value;
+    const rank = selectRank.value;
+
+    if (!userId) {
+      showMessage('Selecciona una cuenta primero.', 'error');
+      return;
+    }
+
+    if (!RANKS.includes(rank) || rank === 'Propietario') {
+      showMessage('El rango seleccionado no está permitido.', 'error');
+      return;
+    }
+
+    if (userId === 'e2b76b60-09b4-4e01-a93f-00c9bd7e257e') {
+      showMessage('El rango del propietario no se puede modificar aquí.', 'error');
+      return;
+    }
+
+    busy = true;
+    saveButton.disabled = true;
+    refreshButton.disabled = true;
+    showMessage('Guardando el rango...');
+
+    try {
+      const { data, error } = await supabase
+        .from('nova_user_profiles')
+        .update({
+          rango: rank,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select('user_id,rango,updated_at');
+
+      if (error) {
+        console.error('Error guardando rango:', error);
+        showMessage(
+          'No se pudo guardar el rango.\n' +
+          'Código: ' + (error.code || 'no disponible') + '\n' +
+          'Mensaje: ' + error.message + '\n' +
+          'Detalle: ' + (error.details || 'sin detalle'),
+          'error'
+        );
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        showMessage(
+          'Supabase no devolvió ningún perfil actualizado. ' +
+          'Verifica que el usuario exista y que las políticas RLS permitan actualizarlo.',
+          'error'
+        );
+        return;
+      }
+
+      showMessage('Rango actualizado correctamente.', 'success');
+      await loadRanks();
+    } catch (error) {
+      console.error('Error inesperado guardando rango:', error);
+      showMessage(
+        'Error inesperado al guardar: ' + (error?.message || String(error)),
+        'error'
+      );
+    } finally {
+      busy = false;
+      saveButton.disabled = profiles.length === 0;
+      refreshButton.disabled = false;
+    }
+  }
+
+  selectUser.addEventListener('change', () => {
+    const profile = profiles.find(item => item.user_id === selectUser.value);
+    if (profile && profile.rango !== 'Propietario') {
+      selectRank.value = RANKS.includes(profile.rango)
+        ? profile.rango
+        : 'Usuario';
+    }
+  });
+
+  refreshButton.addEventListener('click', loadRanks);
+  saveButton.addEventListener('click', saveRank);
+
+  const authorized = await guardPage();
+
+  if (authorized) {
+    login.classList.add('hidden');
+    panel.classList.remove('hidden');
+    await loadRanks();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+/* =========================================
+NOVA APPS — ESTILOS PRINCIPALES
+Archivo: css/main.css
+========================================= */
+
+:root {
+color-scheme: light;
+--nova-bg: #f4f6fb;
+--nova-surface: #ffffff;
+--nova-text: #172033;
+--nova-muted: #65718a;
+--nova-primary: #6558e8;
+--nova-primary-hover: #5144d0;
+--nova-border: #e0e5ef;
+--nova-success: #16845b;
+--nova-danger: #c43d4b;
+--nova-radius: 16px;
+--nova-shadow: 0 8px 28px rgba(30, 42, 75, 0.08);
+--nova-content-width: 1200px;
+}
+
+html[data-theme="dark"] {
+color-scheme: dark;
+--nova-bg: #0c1020;
+--nova-surface: #161c2e;
+--nova-text: #f1f4fc;
+--nova-muted: #a3aec5;
+--nova-primary: #9388ff;
+--nova-primary-hover: #ada5ff;
+--nova-border: #2b344b;
+--nova-success: #51d5a0;
+--nova-danger: #ff818b;
+--nova-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  }
+
+html {
+min-height: 100%;
+scroll-behavior: smooth;
+-webkit-text-size-adjust: 100%;
+}
+
+body {
+margin: 0;
+min-height: 100vh;
+background: var(--nova-bg);
+color: var(--nova-text);
+font-family: system-ui, -apple-system, BlinkMacSystemFont,
+"Segoe UI", sans-serif;
+font-size: 16px;
+line-height: 1.6;
+transition: background-color 0.2s, color 0.2s;
+}
+
+img {
+display: block;
+max-width: 100%;
+height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+-webkit-tap-highlight-color: transparent;
+}
+
+a {
+color: var(--nova-primary);
+text-decoration: none;
+}
+
+a:hover {
+text-decoration: underline;
+}
+
+button {
+cursor: pointer;
+}
+
+button:disabled {
+cursor: not-allowed;
+opacity: 0.55;
+}
+
+:focus-visible {
+outline: 3px solid var(--nova-primary);
+outline-offset: 3px;
+}
+
+.nova-container {
+width: min(100% - 32px, var(--nova-content-width));
+margin-inline: auto;
+}
+
+.nova-section {
+padding-block: 28px;
+}
+
+.nova-title {
+margin: 0 0 12px;
+font-size: clamp(1.5rem, 4vw, 2.2rem);
+line-height: 1.2;
+font-weight: 800;
+}
+
+.nova-subtitle {
+color: var(--nova-muted);
+margin: 0 0 24px;
+}
+
+.nova-header {
+position: relative;
+z-index: 10;
+background: var(--nova-surface);
+border-bottom: 1px solid var(--nova-border);
+}
+
+.nova-header-inner {
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 14px;
+padding-block: 14px;
+}
+
+.nova-brand {
+display: inline-flex;
+align-items: center;
+gap: 10px;
+color: var(--nova-text);
+font-size: 1.25rem;
+font-weight: 800;
+}
+
+.nova-brand img {
+width: 42px;
+height: 42px;
+object-fit: contain;
+}
+
+.nova-nav {
+display: flex;
+flex-wrap: wrap;
+align-items: center;
+gap: 10px;
+}
+
+.nova-nav a {
+padding: 8px 12px;
+border-radius: 10px;
+color: var(--nova-text);
+}
+
+.nova-nav a:hover {
+background: var(--nova-bg);
+text-decoration: none;
+}
+
+.nova-button {
+display: inline-flex;
+justify-content: center;
+align-items: center;
+gap: 8px;
+min-height: 44px;
+padding: 10px 18px;
+border: 1px solid transparent;
+border-radius: 12px;
+background: var(--nova-primary);
+color: #ffffff;
+font-weight: 700;
+text-align: center;
+text-decoration: none;
+transition: opacity 0.2s, transform 0.2s;
+}
+
+.nova-button:hover {
+opacity: 0.92;
+text-decoration: none;
+transform: translateY(-1px);
+}
+
+.nova-button-secondary {
+background: var(--nova-surface);
+color: var(--nova-text);
+border-color: var(--nova-border);
+}
+
+.nova-button-danger {
+background: var(--nova-danger);
+color: #ffffff;
+}
+
+.nova-grid {
+display: grid;
+grid-template-columns: repeat(
+auto-fit,
+minmax(min(100%, 240px), 1fr)
+);
+gap: 18px;
+}
+
+.nova-card {
+min-width: 0;
+padding: 20px;
+background: var(--nova-surface);
+border: 1px solid var(--nova-border);
+border-radius: var(--nova-radius);
+box-shadow: var(--nova-shadow);
+}
+
+.nova-card h2,
+.nova-card h3 {
+margin-top: 0;
+}
+
+.nova-muted {
+color: var(--nova-muted);
+}
+
+.nova-form {
+display: grid;
+gap: 16px;
+}
+
+.nova-field {
+display: grid;
+gap: 6px;
+}
+
+.nova-field label {
+font-weight: 650;
+}
+
+.nova-field input,
+.nova-field select,
+.nova-field textarea,
+.nova-input {
+width: 100%;
+min-height: 44px;
+padding: 10px 12px;
+color: var(--nova-text);
+background: var(--nova-surface);
+border: 1px solid var(--nova-border);
+border-radius: 10px;
+}
+
+.nova-field textarea {
+min-height: 120px;
+resize: vertical;
+}
+
+.nova-status {
+padding: 12px 14px;
+border: 1px solid var(--nova-border);
+border-radius: 10px;
+}
+
+.nova-status-success {
+color: var(--nova-success);
+}
+
+.nova-status-error {
+color: var(--nova-danger);
+}
+
+.nova-badge {
+display: inline-flex;
+align-items: center;
+gap: 5px;
+padding: 4px 10px;
+border: 1px solid var(--nova-border);
+border-radius: 999px;
+font-size: 0.82rem;
+font-weight: 700;
+}
+
+.nova-footer {
+margin-top: 40px;
+padding: 26px 0;
+border-top: 1px solid var(--nova-border);
+color: var(--nova-muted);
+text-align: center;
+}
+
+.nova-hidden {
+display: none !important;
+}
+
+.nova-text-center {
+text-align: center;
+}
+
+.nova-flex {
+display: flex;
+align-items: center;
+flex-wrap: wrap;
+gap: 12px;
+}
+
+.nova-space-between {
+justify-content: space-between;
+}
+
+@media (max-width: 600px) {
+.nova-container {
+width: min(100% - 22px, var(--nova-content-width));
+}
+
+.nova-header-inner {
+align-items: flex-start;
+}
+
+.nova-nav {
+width: 100%;
+}
+
+.nova-nav a {
+padding: 8px;
+}
+
+.nova-section {
+padding-block: 20px;
+}
+
+.nova-card {
+padding: 16px;
+}
+
+.nova-button {
+max-width: 100%;
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+*,
+*::before,
+*::after {
+scroll-behavior: auto !important;
+animation-duration: 0.01ms !important;
+transition-duration: 0.01ms !important;
+}
+}

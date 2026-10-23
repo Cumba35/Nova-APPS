@@ -1,4 +1,3 @@
-Ruta: "finanzas.html"
 
 <!doctype html>
 <html lang="es">
@@ -7,7 +6,7 @@ Ruta: "finanzas.html"
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101827">
   <meta name="description" content="Nova Finanzas: cuentas, tarjetas y operaciones.">
-  <title>Nova Finanzas</title>
+  <title>Nova Finanzas | Nova Apps</title>
 
   <style>
     :root {
@@ -97,6 +96,7 @@ Ruta: "finanzas.html"
 
     .suave {
       color: var(--suave);
+      line-height: 1.5;
     }
 
     .aviso {
@@ -253,14 +253,8 @@ Ruta: "finanzas.html"
         padding: 14px;
       }
 
-      .rejilla {
-        grid-template-columns: 1fr;
-      }
-
-      .acciones {
-        grid-template-columns: 1fr;
-      }
-
+      .rejilla,
+      .acciones,
       .filtros {
         grid-template-columns: 1fr;
       }
@@ -274,35 +268,32 @@ Ruta: "finanzas.html"
       <a class="marca" href="index.html" aria-label="Volver a Nova Apps">
         NOVA <span>FINANZAS</span>
       </a>
-
       <a class="boton" href="index.html">← Nova Apps</a>
     </header>
 
     <section>
       <h1 class="titulo">Tu espacio financiero</h1>
       <p class="suave">
-        Consulta tus cuentas y organiza tus operaciones desde un solo lugar.
+        Consulta y organiza tus cuentas, tarjetas y operaciones.
       </p>
     </section>
 
     <div class="aviso">
       <strong>Versión de demostración.</strong>
-      Los saldos reales, las tarjetas y las transferencias todavía no están
-      conectados. Los registros creados aquí se guardan únicamente en este
+      Los saldos, tarjetas y transferencias todavía no están conectados
+      a servicios financieros. Los datos se guardan únicamente en este
       navegador y no representan dinero real.
     </div>
 
     <section class="rejilla" aria-label="Resumen de saldos">
       <article class="panel">
-        <span class="etiqueta">Saldo bancario</span>
+        <span class="etiqueta">Saldo bancario de demostración</span>
         <strong class="saldo" id="saldoBancario">0,00 CUP</strong>
-        <p class="suave">Saldo de demostración</p>
       </article>
 
       <article class="panel">
-        <span class="etiqueta">Saldo en tarjetas</span>
+        <span class="etiqueta">Saldo en tarjetas de demostración</span>
         <strong class="saldo" id="saldoTarjetas">0,00 CUP</strong>
-        <p class="suave">Saldo de demostración</p>
       </article>
     </section>
 
@@ -365,8 +356,8 @@ Ruta: "finanzas.html"
       <h2 class="seccion-titulo">Transferencia de demostración</h2>
 
       <p class="suave">
-        Solo registra una simulación local. No envía dinero ni contacta
-        con bancos o tarjetas.
+        Esta acción solo simula una transferencia entre los dos saldos
+        locales. No envía dinero ni contacta con bancos.
       </p>
 
       <form id="formTransferencia">
@@ -472,467 +463,7 @@ Ruta: "finanzas.html"
     </footer>
   </main>
 
-  <script>
-    (function () {
-      "use strict";
-
-      const CLAVE = "nova_finanzas_demo_v1";
-
-      const estadoInicial = {
-        saldos: {
-          bancario: 0,
-          tarjeta: 0
-        },
-        operaciones: [],
-        tarjetas: []
-      };
-
-      let datos = cargar();
-
-      function cargar() {
-        try {
-          const guardado = localStorage.getItem(CLAVE);
-
-          if (!guardado) {
-            return copiarInicial();
-          }
-
-          const valor = JSON.parse(guardado);
-
-          if (
-            !valor ||
-            !valor.saldos ||
-            !Array.isArray(valor.operaciones) ||
-            !Array.isArray(valor.tarjetas) ||
-            !Number.isFinite(valor.saldos.bancario) ||
-            !Number.isFinite(valor.saldos.tarjeta)
-          ) {
-            return copiarInicial();
-          }
-
-          return valor;
-        } catch (error) {
-          return copiarInicial();
-        }
-      }
-
-      function copiarInicial() {
-        return {
-          saldos: { bancario: 0, tarjeta: 0 },
-          operaciones: [],
-          tarjetas: []
-        };
-      }
-
-      function guardar() {
-        try {
-          localStorage.setItem(CLAVE, JSON.stringify(datos));
-          return true;
-        } catch (error) {
-          mostrarEstado(
-            "No se pudieron guardar los datos en este dispositivo."
-          );
-          return false;
-        }
-      }
-
-      function dinero(cantidad) {
-        return Number(cantidad).toLocaleString("es-ES", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }) + " CUP";
-      }
-
-      function nombreCuenta(cuenta) {
-        return cuenta === "bancario"
-          ? "Saldo bancario"
-          : "Saldo en tarjetas";
-      }
-
-      function mostrarEstado(mensaje) {
-        document.getElementById("estado").textContent = mensaje;
-      }
-
-      function agregarOperacion(descripcion, tipo, cuenta, importe) {
-        if (
-          !Number.isFinite(importe) ||
-          importe <= 0 ||
-          importe > 1000000000
-        ) {
-          mostrarEstado("Introduce un importe válido.");
-          return false;
-        }
-
-        const cambio = tipo === "ingreso" ? importe : -importe;
-        const nuevoSaldo = datos.saldos[cuenta] + cambio;
-
-        if (nuevoSaldo < 0) {
-          mostrarEstado(
-            "Saldo de demostración insuficiente para registrar ese gasto."
-          );
-          return false;
-        }
-
-        datos.saldos[cuenta] = Math.round(nuevoSaldo * 100) / 100;
-
-        datos.operaciones.push({
-          id: crearId(),
-          descripcion: descripcion,
-          tipo: tipo,
-          cuenta: cuenta,
-          importe: Math.round(importe * 100) / 100,
-          fecha: new Date().toISOString()
-        });
-
-        if (!guardar()) {
-          datos = cargar();
-          renderizar();
-          return false;
-        }
-
-        renderizar();
-        mostrarEstado("Operación de demostración guardada.");
-        return true;
-      }
-
-      function crearId() {
-        if (window.crypto && crypto.randomUUID) {
-          return crypto.randomUUID();
-        }
-
-        return Date.now().toString(36) +
-          Math.random().toString(36).slice(2);
-      }
-
-      function texto(tag, contenido, clase) {
-        const elemento = document.createElement(tag);
-        elemento.textContent = contenido;
-
-        if (clase) {
-          elemento.className = clase;
-        }
-
-        return elemento;
-      }
-
-      function renderizarOperaciones() {
-        const contenedor = document.getElementById("listaOperaciones");
-        const cuenta = document.getElementById("filtroCuenta").value;
-        const orden = document.getElementById("filtroOrden").value;
-
-        contenedor.replaceChildren();
-
-        let lista = datos.operaciones.filter(function (op) {
-          return cuenta === "todas" || op.cuenta === cuenta;
-        });
-
-        lista = lista.slice();
-
-        if (orden === "importeDesc") {
-          lista.sort((a, b) => b.importe - a.importe);
-        } else if (orden === "importeAsc") {
-          lista.sort((a, b) => a.importe - b.importe);
-        } else {
-          lista.sort((a, b) =>
-            new Date(b.fecha).getTime() -
-            new Date(a.fecha).getTime()
-          );
-        }
-
-        if (lista.length === 0) {
-          contenedor.appendChild(
-            texto("div", "Todavía no hay operaciones.", "vacio")
-          );
-          return;
-        }
-
-        lista.forEach(function (op) {
-          const fila = document.createElement("article");
-          fila.className = "operacion";
-
-          const detalles = document.createElement("div");
-          detalles.appendChild(
-            texto("div", op.descripcion, "operacion-nombre")
-          );
-          detalles.appendChild(
-            texto(
-              "div",
-              nombreCuenta(op.cuenta) + " · " +
-                new Date(op.fecha).toLocaleString(),
-              "operacion-fecha"
-            )
-          );
-
-          const signo = op.tipo === "ingreso" ? "+" : "−";
-          const importe = texto(
-            "div",
-            signo + dinero(op.importe),
-            "importe " +
-              (op.tipo === "ingreso" ? "positivo" : "negativo")
-          );
-
-          fila.append(detalles, importe);
-          contenedor.appendChild(fila);
-        });
-      }
-
-      function renderizarTarjetas() {
-        const contenedor = document.getElementById("listaTarjetas");
-        contenedor.replaceChildren();
-
-        if (datos.tarjetas.length === 0) {
-          contenedor.appendChild(
-            texto("div", "No hay tarjetas de demostración.", "vacio")
-          );
-          return;
-        }
-
-        datos.tarjetas.forEach(function (tarjeta) {
-          const fila = document.createElement("div");
-          fila.className = "operacion";
-
-          const descripcion = tarjeta.ultimos
-            ? tarjeta.alias + " · **** " + tarjeta.ultimos
-            : tarjeta.alias;
-
-          fila.appendChild(texto("div", descripcion, "operacion-nombre"));
-          fila.appendChild(
-            texto("span", "DEMO", "etiqueta")
-          );
-
-          contenedor.appendChild(fila);
-        });
-      }
-
-      function renderizar() {
-        document.getElementById("saldoBancario").textContent =
-          dinero(datos.saldos.bancario);
-
-        document.getElementById("saldoTarjetas").textContent =
-          dinero(datos.saldos.tarjeta);
-
-        renderizarOperaciones();
-        renderizarTarjetas();
-      }
-
-      document.querySelectorAll("[data-formulario]").forEach(function (boton) {
-        boton.addEventListener("click", function () {
-          const id = boton.dataset.formulario;
-          const formulario = document.getElementById(id);
-
-          formulario.classList.toggle("abierto");
-
-          if (formulario.classList.contains("abierto")) {
-            formulario.scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
-          }
-        });
-      });
-
-      document.getElementById("formOperacion")
-        .addEventListener("submit", function (evento) {
-          evento.preventDefault();
-
-          const descripcion =
-            document.getElementById("opNombre").value.trim();
-          const tipo = document.getElementById("opTipo").value;
-          const cuenta = document.getElementById("opCuenta").value;
-          const importe = Number(
-            document.getElementById("opImporte").value
-          );
-
-          if (!descripcion) {
-            mostrarEstado("Escribe una descripción.");
-            return;
-          }
-
-          if (agregarOperacion(descripcion, tipo, cuenta, importe)) {
-            evento.target.reset();
-          }
-        });
-
-      document.getElementById("formTransferencia")
-        .addEventListener("submit", function (evento) {
-          evento.preventDefault();
-
-          const origen = document.getElementById("trOrigen").value;
-          const destino = document.getElementById("trDestino").value;
-          const importe = Number(
-            document.getElementById("trImporte").value
-          );
-
-          if (origen === destino) {
-            mostrarEstado("Elige dos cuentas diferentes.");
-            return;
-          }
-
-          if (!Number.isFinite(importe) || importe <= 0) {
-            mostrarEstado("Introduce un importe válido.");
-            return;
-          }
-
-          if (datos.saldos[origen] < importe) {
-            mostrarEstado("Saldo de demostración insuficiente.");
-            return;
-          }
-
-          // La simulación solo actualiza saldos locales.
-          const saldoOrigen = datos.saldos[origen] - importe;
-          const saldoDestino = datos.saldos[destino] + importe;
-
-          datos.saldos[origen] = Math.round(saldoOrigen * 100) / 100;
-          datos.saldos[destino] = Math.round(saldoDestino * 100) / 100;
-
-          const fecha = new Date().toISOString();
-
-          datos.operaciones.push({
-            id: crearId(),
-            descripcion: "Transferencia simulada a " +
-              nombreCuenta(destino),
-            tipo: "gasto",
-            cuenta: origen,
-            importe: importe,
-            fecha: fecha
-          });
-
-          datos.operaciones.push({
-            id: crearId(),
-            descripcion: "Transferencia simulada desde " +
-              nombreCuenta(origen),
-            tipo: "ingreso",
-            cuenta: destino,
-            importe: importe,
-            fecha: fecha
-          });
-
-          if (!guardar()) {
-            datos = cargar();
-            renderizar();
-            return;
-          }
-
-          renderizar();
-          evento.target.reset();
-          mostrarEstado(
-            "Simulación guardada localmente. No se transfirió dinero real."
-          );
-        });
-
-      document.getElementById("formTarjeta")
-        .addEventListener("submit", function (evento) {
-          evento.preventDefault();
-
-          const alias = document.getElementById("tarAlias")
-            .value.trim();
-          const ultimos = document.getElementById("tarUltimos")
-            .value.trim();
-
-          if (!alias) {
-            mostrarEstado("Escribe un alias para la tarjeta.");
-            return;
-          }
-
-          if (ultimos && !/^[0-9]{4}$/.test(ultimos)) {
-            mostrarEstado("Los últimos dígitos deben ser cuatro números.");
-            return;
-          }
-
-          datos.tarjetas.push({
-            id: crearId(),
-            alias: alias,
-            ultimos: ultimos
-          });
-
-          if (!guardar()) {
-            datos = cargar();
-            renderizar();
-            return;
-          }
-
-          renderizar();
-          evento.target.reset();
-          mostrarEstado("Tarjeta de demostración guardada.");
-        });
-
-      document.getElementById("filtroOrden")
-        .addEventListener("change", renderizarOperaciones);
-
-      document.getElementById("filtroCuenta")
-        .addEventListener("change", renderizarOperaciones);
-
-      document.getElementById("exportar")
-        .addEventListener("click", function () {
-          const filas = [
-            ["Descripción", "Tipo", "Cuenta", "Importe CUP", "Fecha"]
-          ];
-
-          datos.operaciones.forEach(function (op) {
-            filas.push([
-              op.descripcion,
-              op.tipo,
-              nombreCuenta(op.cuenta),
-              op.importe.toFixed(2),
-              op.fecha
-            ]);
-          });
-
-          function escapar(valor) {
-            let textoCSV = String(valor);
-
-            // Evita que valores exportados se interpreten como fórmulas.
-            if (/^[\s]*[=+\-@]/.test(textoCSV)) {
-              textoCSV = "'" + textoCSV;
-            }
-
-            return '"' + textoCSV.replace(/"/g, '""') + '"';
-          }
-
-          const csv = "\uFEFF" + filas.map(function (fila) {
-            return fila.map(escapar).join(";");
-          }).join("\r\n");
-
-          const archivo = new Blob([csv], {
-            type: "text/csv;charset=utf-8;"
-          });
-
-          const url = URL.createObjectURL(archivo);
-          const enlace = document.createElement("a");
-
-          enlace.href = url;
-          enlace.download = "nova-finanzas-demo.csv";
-          document.body.appendChild(enlace);
-          enlace.click();
-          enlace.remove();
-
-          URL.revokeObjectURL(url);
-          mostrarEstado("Archivo CSV de demostración preparado.");
-        });
-
-      document.getElementById("borrarDatos")
-        .addEventListener("click", function () {
-          const confirmar = window.confirm(
-            "¿Quieres borrar todos los saldos, tarjetas y operaciones " +
-            "de demostración guardados en este navegador?"
-          );
-
-          if (!confirmar) {
-            return;
-          }
-
-          try {
-            localStorage.removeItem(CLAVE);
-            datos = copiarInicial();
-            renderizar();
-            mostrarEstado("Datos de demostración borrados.");
-          } catch (error) {
-            mostrarEstado("No se pudieron borrar los datos.");
-          }
-        });
-
-      renderizar();
-    })();
-  </script>
+  <!-- JavaScript separado -->
+  <script src="js/finanzas/finanzas.js" defer></script>
 </body>
 </html>

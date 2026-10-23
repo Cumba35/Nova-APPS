@@ -1,0 +1,705 @@
+Ruta: "inspectores.html"
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="Panel de gestión de inspectores de Nova Apps.">
+  <title>Inspectores | Nova Apps</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --fondo: #101827;
+      --panel: #192438;
+      --borde: #2d3c54;
+      --texto: #f1f5f9;
+      --suave: #a8b6ca;
+      --azul: #5596ff;
+      --verde: #45d6a0;
+      --rojo: #ff8585;
+      --amarillo: #f5c76b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    button, a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .contenedor {
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+
+    .marca {
+      font-size: 23px;
+      font-weight: 850;
+    }
+
+    .marca span {
+      color: var(--azul);
+    }
+
+    .boton {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 43px;
+      padding: 10px 15px;
+      border: 1px solid var(--borde);
+      border-radius: 11px;
+      background: var(--panel);
+      color: var(--texto);
+      cursor: pointer;
+    }
+
+    .boton.primario {
+      background: var(--azul);
+      border-color: transparent;
+      color: #071426;
+      font-weight: 750;
+    }
+
+    .boton.peligro {
+      color: var(--rojo);
+    }
+
+    .titulo {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 5vw, 35px);
+    }
+
+    .suave {
+      color: var(--suave);
+      line-height: 1.5;
+    }
+
+    .aviso {
+      padding: 14px;
+      border: 1px solid #82682d;
+      background: #392f1c;
+      border-radius: 13px;
+      margin: 20px 0;
+      line-height: 1.5;
+    }
+
+    .rejilla {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 18px;
+      margin-bottom: 16px;
+      border: 1px solid var(--borde);
+      background: var(--panel);
+      border-radius: 16px;
+    }
+
+    .numero {
+      display: block;
+      font-size: 30px;
+      font-weight: 800;
+      margin-top: 7px;
+    }
+
+    .etiqueta {
+      color: var(--suave);
+      font-size: 13px;
+    }
+
+    .seccion-titulo {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+
+    .campo {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .campo label {
+      font-size: 14px;
+      color: var(--suave);
+    }
+
+    .campo input,
+    .campo select {
+      width: 100%;
+      min-height: 45px;
+      padding: 10px 12px;
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      background: var(--fondo);
+      color: var(--texto);
+    }
+
+    .formulario {
+      display: none;
+    }
+
+    .formulario.abierto {
+      display: block;
+    }
+
+    .filtros {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+    }
+
+    .lista {
+      display: grid;
+      gap: 12px;
+    }
+
+    .inspector {
+      border: 1px solid var(--borde);
+      border-radius: 13px;
+      padding: 15px;
+      min-width: 0;
+    }
+
+    .inspector-cabecera {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .nombre {
+      font-weight: 750;
+      overflow-wrap: anywhere;
+    }
+
+    .detalle {
+      color: var(--suave);
+      font-size: 13px;
+      margin-top: 5px;
+      overflow-wrap: anywhere;
+    }
+
+    .estado {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 9px;
+      border-radius: 20px;
+      font-size: 12px;
+      background: #26364a;
+    }
+
+    .estado.activo {
+      color: var(--verde);
+    }
+
+    .estado.inactivo {
+      color: var(--amarillo);
+    }
+
+    .acciones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .acciones .boton {
+      min-height: 38px;
+      padding: 8px 11px;
+      font-size: 13px;
+    }
+
+    .estado-mensaje {
+      min-height: 24px;
+      overflow-wrap: anywhere;
+      color: var(--verde);
+    }
+
+    .vacio {
+      padding: 24px 8px;
+      text-align: center;
+      color: var(--suave);
+    }
+
+    .pie {
+      text-align: center;
+      color: var(--suave);
+      font-size: 12px;
+      padding: 20px 0;
+    }
+
+    @media (max-width: 650px) {
+      .contenedor {
+        padding: 14px;
+      }
+
+      .rejilla {
+        grid-template-columns: 1fr;
+      }
+
+      .filtros {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="contenedor">
+    <header>
+      <a class="marca" href="index.html">NOVA <span>INSPECTORES</span></a>
+      <a class="boton" href="index.html">← Nova Apps</a>
+    </header>
+
+    <section>
+      <h1 class="titulo">Gestión de inspectores</h1>
+      <p class="suave">
+        Panel provisional para organizar los registros de inspectores.
+      </p>
+    </section>
+
+    <div class="aviso">
+      <strong>Modo de demostración.</strong>
+      Este panel no verifica la identidad ni los permisos de una cuenta.
+      Los datos se guardan en el navegador actual y no se comparten con
+      otros dispositivos. No introduzcas información personal real.
+    </div>
+
+    <section class="rejilla" aria-label="Resumen">
+      <article class="panel">
+        <span class="etiqueta">Total de registros</span>
+        <strong class="numero" id="total">0</strong>
+      </article>
+
+      <article class="panel">
+        <span class="etiqueta">Activos</span>
+        <strong class="numero" id="activos">0</strong>
+      </article>
+
+      <article class="panel">
+        <span class="etiqueta">Inactivos</span>
+        <strong class="numero" id="inactivos">0</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <button class="boton primario" type="button" id="abrirFormulario">
+        + Registrar inspector de prueba
+      </button>
+
+      <form class="formulario" id="formulario" style="margin-top:20px">
+        <h2 class="seccion-titulo">Nuevo registro de prueba</h2>
+
+        <div class="campo">
+          <label for="nombre">Nombre o alias</label>
+          <input id="nombre" maxlength="60" required
+            autocomplete="off" placeholder="Ej.: Inspector 01">
+        </div>
+
+        <div class="campo">
+          <label for="codigo">Código interno de prueba</label>
+          <input id="codigo" maxlength="30" required
+            autocomplete="off" placeholder="Ej.: INS-001">
+        </div>
+
+        <div class="campo">
+          <label for="zona">Zona asignada</label>
+          <input id="zona" maxlength="80" required
+            autocomplete="off" placeholder="Ej.: Zona norte">
+        </div>
+
+        <div class="campo">
+          <label for="estadoInicial">Estado inicial</label>
+          <select id="estadoInicial">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+        </div>
+
+        <button class="boton primario" type="submit">
+          Guardar registro local
+        </button>
+
+        <button class="boton" type="button" id="cancelar">
+          Cancelar
+        </button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2 class="seccion-titulo">Inspectores registrados</h2>
+
+      <div class="filtros">
+        <div class="campo">
+          <label for="buscar">Buscar por nombre, código o zona</label>
+          <input id="buscar" type="search" placeholder="Buscar...">
+        </div>
+
+        <div class="campo">
+          <label for="filtroEstado">Filtrar por estado</label>
+          <select id="filtroEstado">
+            <option value="todos">Todos</option>
+            <option value="activo">Activos</option>
+            <option value="inactivo">Inactivos</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="lista" class="lista" aria-live="polite"></div>
+      <p id="mensaje" class="estado-mensaje" aria-live="polite"></p>
+    </section>
+
+    <footer class="pie">
+      Nova Apps · Panel provisional · Sin conexión a Supabase.
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const CLAVE = "nova_inspectores_demo_v1";
+
+      let inspectores = cargar();
+
+      const formulario = document.getElementById("formulario");
+      const lista = document.getElementById("lista");
+      const mensaje = document.getElementById("mensaje");
+
+      function cargar() {
+        try {
+          const contenido = localStorage.getItem(CLAVE);
+
+          if (!contenido) {
+            return [];
+          }
+
+          const resultado = JSON.parse(contenido);
+
+          if (!Array.isArray(resultado)) {
+            return [];
+          }
+
+          return resultado.filter(function (item) {
+            return item &&
+              typeof item.id === "string" &&
+              typeof item.nombre === "string" &&
+              typeof item.codigo === "string" &&
+              typeof item.zona === "string" &&
+              ["activo", "inactivo"].includes(item.estado);
+          });
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function guardar() {
+        try {
+          localStorage.setItem(CLAVE, JSON.stringify(inspectores));
+          return true;
+        } catch (error) {
+          mostrarMensaje(
+            "No se pudieron guardar los datos en este dispositivo."
+          );
+          return false;
+        }
+      }
+
+      function nuevoId() {
+        if (window.crypto && crypto.randomUUID) {
+          return crypto.randomUUID();
+        }
+
+        return Date.now().toString(36) +
+          Math.random().toString(36).slice(2);
+      }
+
+      function crearElemento(etiqueta, contenido, clase) {
+        const elemento = document.createElement(etiqueta);
+        elemento.textContent = contenido;
+
+        if (clase) {
+          elemento.className = clase;
+        }
+
+        return elemento;
+      }
+
+      function mostrarMensaje(texto) {
+        mensaje.textContent = texto;
+      }
+
+      function renderizar() {
+        const busqueda = document.getElementById("buscar")
+          .value.trim().toLocaleLowerCase();
+
+        const filtro = document.getElementById("filtroEstado").value;
+
+        const activos = inspectores.filter(function (item) {
+          return item.estado === "activo";
+        }).length;
+
+        document.getElementById("total").textContent =
+          String(inspectores.length);
+
+        document.getElementById("activos").textContent =
+          String(activos);
+
+        document.getElementById("inactivos").textContent =
+          String(inspectores.length - activos);
+
+        lista.replaceChildren();
+
+        const filtrados = inspectores.filter(function (item) {
+          const coincideEstado =
+            filtro === "todos" || item.estado === filtro;
+
+          const texto = (
+            item.nombre + " " + item.codigo + " " + item.zona
+          ).toLocaleLowerCase();
+
+          return coincideEstado && texto.includes(busqueda);
+        });
+
+        if (filtrados.length === 0) {
+          lista.appendChild(
+            crearElemento(
+              "div",
+              "No hay registros que coincidan con la búsqueda.",
+              "vacio"
+            )
+          );
+          return;
+        }
+
+        filtrados.forEach(function (item) {
+          const tarjeta = document.createElement("article");
+          tarjeta.className = "inspector";
+
+          const cabecera = document.createElement("div");
+          cabecera.className = "inspector-cabecera";
+
+          const detalles = document.createElement("div");
+
+          detalles.appendChild(
+            crearElemento("div", item.nombre, "nombre")
+          );
+
+          detalles.appendChild(
+            crearElemento("div", "Código: " + item.codigo, "detalle")
+          );
+
+          detalles.appendChild(
+            crearElemento("div", "Zona: " + item.zona, "detalle")
+          );
+
+          const etiquetaEstado = crearElemento(
+            "span",
+            item.estado === "activo" ? "Activo" : "Inactivo",
+            "estado " + item.estado
+          );
+
+          cabecera.append(detalles, etiquetaEstado);
+          tarjeta.appendChild(cabecera);
+
+          const acciones = document.createElement("div");
+          acciones.className = "acciones";
+
+          const botonEstado = crearElemento(
+            "button",
+            item.estado === "activo"
+              ? "Marcar inactivo"
+              : "Marcar activo",
+            "boton"
+          );
+
+          botonEstado.type = "button";
+
+          botonEstado.addEventListener("click", function () {
+            cambiarEstado(item.id);
+          });
+
+          const botonEliminar = crearElemento(
+            "button",
+            "Eliminar registro",
+            "boton peligro"
+          );
+
+          botonEliminar.type = "button";
+
+          botonEliminar.addEventListener("click", function () {
+            eliminar(item.id);
+          });
+
+          acciones.append(botonEstado, botonEliminar);
+          tarjeta.appendChild(acciones);
+          lista.appendChild(tarjeta);
+        });
+      }
+
+      function cambiarEstado(id) {
+        const item = inspectores.find(function (registro) {
+          return registro.id === id;
+        });
+
+        if (!item) {
+          return;
+        }
+
+        item.estado = item.estado === "activo"
+          ? "inactivo"
+          : "activo";
+
+        if (!guardar()) {
+          inspectores = cargar();
+          renderizar();
+          return;
+        }
+
+        renderizar();
+        mostrarMensaje("Estado de demostración actualizado.");
+      }
+
+      function eliminar(id) {
+        const item = inspectores.find(function (registro) {
+          return registro.id === id;
+        });
+
+        if (!item) {
+          return;
+        }
+
+        if (!window.confirm(
+          "¿Eliminar el registro de demostración de " +
+          item.nombre + "?"
+        )) {
+          return;
+        }
+
+        const anterior = inspectores;
+        inspectores = inspectores.filter(function (registro) {
+          return registro.id !== id;
+        });
+
+        if (!guardar()) {
+          inspectores = anterior;
+          renderizar();
+          return;
+        }
+
+        renderizar();
+        mostrarMensaje("Registro de demostración eliminado.");
+      }
+
+      document.getElementById("abrirFormulario")
+        .addEventListener("click", function () {
+          formulario.classList.toggle("abierto");
+
+          if (formulario.classList.contains("abierto")) {
+            document.getElementById("nombre").focus();
+          }
+        });
+
+      document.getElementById("cancelar")
+        .addEventListener("click", function () {
+          formulario.reset();
+          formulario.classList.remove("abierto");
+        });
+
+      formulario.addEventListener("submit", function (evento) {
+        evento.preventDefault();
+
+        const nombre = document.getElementById("nombre")
+          .value.trim();
+
+        const codigo = document.getElementById("codigo")
+          .value.trim();
+
+        const zona = document.getElementById("zona")
+          .value.trim();
+
+        const estado = document.getElementById("estadoInicial").value;
+
+        if (!nombre || !codigo || !zona) {
+          mostrarMensaje("Completa todos los campos obligatorios.");
+          return;
+        }
+
+        const codigoNormalizado = codigo.toLocaleLowerCase();
+
+        const duplicado = inspectores.some(function (item) {
+          return item.codigo.toLocaleLowerCase() === codigoNormalizado;
+        });
+
+        if (duplicado) {
+          mostrarMensaje("Ese código ya existe en los registros locales.");
+          return;
+        }
+
+        inspectores.push({
+          id: nuevoId(),
+          nombre: nombre,
+          codigo: codigo,
+          zona: zona,
+          estado: estado,
+          creado: new Date().toISOString()
+        });
+
+        if (!guardar()) {
+          inspectores = cargar();
+          renderizar();
+          return;
+        }
+
+        formulario.reset();
+        formulario.classList.remove("abierto");
+        renderizar();
+        mostrarMensaje("Registro de demostración guardado.");
+      });
+
+      document.getElementById("buscar")
+        .addEventListener("input", renderizar);
+
+      document.getElementById("filtroEstado")
+        .addEventListener("change", renderizar);
+
+      renderizar();
+    })();
+  </script>
+</body>
+</html>

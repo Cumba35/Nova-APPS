@@ -1,0 +1,3 @@
+
+[functions.nova-ia]
+verify_jwt = true

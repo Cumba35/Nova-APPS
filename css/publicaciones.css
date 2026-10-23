@@ -1,0 +1,133 @@
+/* Catálogo y publicaciones de Nova Apps */
+
+#catalogo {
+  scroll-margin-top: 20px;
+}
+
+#catalogo > h2,
+#publicar h2 {
+  margin-top: 0;
+  font-size: clamp(22px, 4vw, 30px);
+  line-height: 1.3;
+}
+
+#catalogo > p,
+#publicar p {
+  line-height: 1.65;
+}
+
+#categoryFilter,
+#typeFilter,
+#searchInput {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  min-height: 46px;
+  margin: 8px 0 16px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+#appsList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 22px 0;
+}
+
+#appsList > * {
+  min-width: 0;
+}
+
+#appsList .card {
+  height: 100%;
+  overflow-wrap: anywhere;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+#appsList .card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+#appsList img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+#appsList h3,
+#appsList h2 {
+  margin-top: 0;
+  overflow-wrap: anywhere;
+}
+
+#appsList p {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+#appsList a,
+#appsList button {
+  overflow-wrap: anywhere;
+}
+
+.status,
+.tag {
+  display: inline-block;
+  max-width: 100%;
+  margin: 3px 4px 3px 0;
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+#appsMessage {
+  min-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+#publicar {
+  scroll-margin-top: 20px;
+}
+
+#publicar .card {
+  border-radius: 18px;
+  padding: clamp(16px, 4vw, 24px);
+}
+
+#publicar .card p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 650px) {
+  #appsList {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  #categoryFilter,
+  #typeFilter,
+  #searchInput {
+    max-width: 100%;
+  }
+
+  #appsList .card:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #appsList .card {
+    transition: none;
+  }
+}

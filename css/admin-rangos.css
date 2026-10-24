@@ -1,0 +1,169 @@
+
+:root {
+  color-scheme: dark;
+  --bg: #101426;
+  --panel: #191f35;
+  --panel2: #222a43;
+  --text: #f3f5ff;
+  --muted: #aeb8d4;
+  --accent: #a5a6ff;
+  --border: #343d5b;
+  --danger: #ff9292;
+  --success: #8de0b0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 18px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+main {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 1.7rem;
+}
+
+h2 {
+  font-size: 1.15rem;
+}
+
+p {
+  line-height: 1.5;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.panel {
+  margin-top: 16px;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+button,
+select {
+  width: 100%;
+  min-height: 45px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+}
+
+button {
+  background: var(--accent);
+  color: #111329;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondary {
+  color: var(--text);
+  background: var(--panel2);
+  border: 1px solid var(--border);
+}
+
+button:disabled,
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+select {
+  color: var(--text);
+  background: var(--panel2);
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+#message {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.profile {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+.profile strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.profile select {
+  margin-top: 8px;
+}
+
+.status-error {
+  color: var(--danger);
+}
+
+.status-success {
+  color: var(--success);
+}
+
+.rank-icon {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.row button {
+  flex: 1 1 160px;
+}
+
+code {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 12px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  h1 {
+    font-size: 1.45rem;
+  }
+}

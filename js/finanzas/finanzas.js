@@ -1,10 +1,16 @@
 
 /*
  * NOVA APPS — FINANZAS
- * Ruta: js/finanzas/finanzas.js
+ * Archivo: js/finanzas/finanzas.js
  *
  * Prototipo local de demostración.
  * No conecta con bancos ni mueve dinero real.
+ *
+ * Módulos compatibles:
+ * - operaciones.js
+ * - tarjetas.js
+ * - reportes.js
+ * - presupuestos.js
  */
 
 "use strict";
@@ -18,6 +24,10 @@
   const CUENTAS = ["bancario", "tarjeta"];
   const TIPOS = ["ingreso", "gasto"];
 
+  const moduloOperaciones = window.NovaFinanzasOperaciones;
+  const moduloTarjetas = window.NovaFinanzasTarjetas;
+  const moduloReportes = window.NovaFinanzasReportes;
+
   function estadoInicial() {
     return {
       saldos: {
@@ -29,11 +39,13 @@
     };
   }
 
-  let datos = cargar();
-
   function numeroValido(valor) {
     return typeof valor === "number" &&
       Number.isFinite(valor);
+  }
+
+  function redondear(valor) {
+    return Math.round((valor + Number.EPSILON) * 100) / 100;
   }
 
   function textoSeguro(valor, maximo) {
@@ -42,6 +54,11 @@
   }
 
   function dinero(valor) {
+    if (moduloReportes &&
+        typeof moduloReportes.formatearCUP === "function") {
+      return moduloReportes.formatearCUP(valor);
+    }
+
     return Number(valor).toLocaleString("es-ES", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -161,9 +178,7 @@
     }
   }
 
-  function redondear(valor) {
-    return Math.round((valor + Number.EPSILON) * 100) / 100;
-  }
+  let datos = cargar();
 
   function guardar() {
     try {
@@ -183,8 +198,7 @@
   }
 
   /*
-   * Guarda un borrador antes de confirmar el cambio.
-   * Si localStorage falla, el estado anterior se conserva.
+   * Confirma un cambio solo si el almacenamiento local funciona.
    */
   function confirmarCambio(borrador, mensaje) {
     const anterior = datos;
@@ -223,7 +237,9 @@
       importe <= 0 ||
       importe > MAX_IMPORTE
     ) {
-      estadoMensaje("Comprueba la descripción, la cuenta y el importe.");
+      estadoMensaje(
+        "Comprueba la descripción, el tipo, la cuenta y el importe."
+      );
       return false;
     }
 
@@ -236,27 +252,53 @@
 
     importe = redondear(importe);
 
-    const borrador = clonarDatos();
-    const cambio = tipo === "ingreso" ? importe : -importe;
-    const saldoNuevo = redondear(
-      borrador.saldos[cuenta] + cambio
-    );
+    let resultado;
 
-    if (saldoNuevo < 0) {
-      estadoMensaje("El saldo de demostración es insuficiente.");
-      return false;
+    if (
+      moduloOperaciones &&
+      typeof moduloOperaciones.aplicarOperacion === "function"
+    ) {
+      resultado = moduloOperaciones.aplicarOperacion(
+        datos.saldos,
+        datos.operaciones,
+        { descripcion, tipo, cuenta, importe }
+      );
+
+      if (!resultado.correcta) {
+        estadoMensaje(resultado.error);
+        return false;
+      }
+    } else {
+      const cambio = tipo === "ingreso" ? importe : -importe;
+      const saldoNuevo = redondear(datos.saldos[cuenta] + cambio);
+
+      if (saldoNuevo < 0) {
+        estadoMensaje("El saldo de demostración es insuficiente.");
+        return false;
+      }
+
+      const operacion = {
+        id: crearId(),
+        descripcion,
+        tipo,
+        cuenta,
+        importe,
+        fecha: new Date().toISOString()
+      };
+
+      resultado = {
+        correcta: true,
+        saldos: {
+          ...datos.saldos,
+          [cuenta]: saldoNuevo
+        },
+        operaciones: datos.operaciones.concat(operacion)
+      };
     }
 
-    borrador.saldos[cuenta] = saldoNuevo;
-
-    borrador.operaciones.push({
-      id: crearId(),
-      descripcion,
-      tipo,
-      cuenta,
-      importe,
-      fecha: new Date().toISOString()
-    });
+    const borrador = clonarDatos();
+    borrador.saldos = resultado.saldos;
+    borrador.operaciones = resultado.operaciones;
 
     return confirmarCambio(
       borrador,
@@ -273,7 +315,7 @@
       importe <= 0 ||
       importe > MAX_IMPORTE
     ) {
-      estadoMensaje("Comprueba las cuentas y el importe.");
+      estadoMensaje("Elige dos cuentas diferentes y un importe válido.");
       return false;
     }
 
@@ -286,41 +328,68 @@
 
     importe = redondear(importe);
 
-    if (datos.saldos[origen] < importe) {
-      estadoMensaje("El saldo de demostración es insuficiente.");
-      return false;
+    let resultado;
+
+    if (
+      moduloOperaciones &&
+      typeof moduloOperaciones.simularTransferencia === "function"
+    ) {
+      resultado = moduloOperaciones.simularTransferencia(
+        datos.saldos,
+        datos.operaciones,
+        origen,
+        destino,
+        importe
+      );
+
+      if (!resultado.correcta) {
+        estadoMensaje(resultado.error);
+        return false;
+      }
+    } else {
+      if (datos.saldos[origen] < importe) {
+        estadoMensaje("El saldo de demostración es insuficiente.");
+        return false;
+      }
+
+      const fecha = new Date().toISOString();
+      const nuevosSaldos = { ...datos.saldos };
+
+      nuevosSaldos[origen] = redondear(
+        nuevosSaldos[origen] - importe
+      );
+
+      nuevosSaldos[destino] = redondear(
+        nuevosSaldos[destino] + importe
+      );
+
+      resultado = {
+        correcta: true,
+        saldos: nuevosSaldos,
+        operaciones: datos.operaciones.concat([
+          {
+            id: crearId(),
+            descripcion: "Transferencia simulada de salida",
+            tipo: "gasto",
+            cuenta: origen,
+            importe,
+            fecha
+          },
+          {
+            id: crearId(),
+            descripcion: "Transferencia simulada de entrada",
+            tipo: "ingreso",
+            cuenta: destino,
+            importe,
+            fecha
+          }
+        ])
+      };
     }
 
     const borrador = clonarDatos();
-    const fecha = new Date().toISOString();
-
-    borrador.saldos[origen] = redondear(
-      borrador.saldos[origen] - importe
-    );
-
-    borrador.saldos[destino] = redondear(
-      borrador.saldos[destino] + importe
-    );
-
-    borrador.operaciones.push({
-      id: crearId(),
-      descripcion: "Transferencia simulada a " +
-        nombreCuenta(destino),
-      tipo: "gasto",
-      cuenta: origen,
-      importe,
-      fecha
-    });
-
-    borrador.operaciones.push({
-      id: crearId(),
-      descripcion: "Transferencia simulada desde " +
-        nombreCuenta(origen),
-      tipo: "ingreso",
-      cuenta: destino,
-      importe,
-      fecha
-    });
+    borrador.saldos = resultado.saldos;
+    borrador.operaciones = resultado.operaciones;
 
     return confirmarCambio(
       borrador,
@@ -332,28 +401,46 @@
     alias = textoSeguro(alias, 40);
     ultimos = textoSeguro(ultimos, 4);
 
-    if (!alias) {
-      estadoMensaje("Escribe un nombre para la tarjeta.");
-      return false;
-    }
-
-    if (ultimos && !/^[0-9]{4}$/.test(ultimos)) {
-      estadoMensaje("Solo se permiten los últimos cuatro dígitos.");
-      return false;
-    }
-
     if (datos.tarjetas.length >= MAX_TARJETAS) {
       estadoMensaje("Se alcanzó el límite de tarjetas de demostración.");
       return false;
     }
 
-    const borrador = clonarDatos();
+    let resultado;
 
-    borrador.tarjetas.push({
-      id: crearId(),
-      alias,
-      ultimos
-    });
+    if (
+      moduloTarjetas &&
+      typeof moduloTarjetas.crearTarjeta === "function"
+    ) {
+      resultado = moduloTarjetas.crearTarjeta(alias, ultimos);
+
+      if (!resultado.correcta) {
+        estadoMensaje(resultado.error);
+        return false;
+      }
+    } else {
+      if (!alias) {
+        estadoMensaje("Escribe un nombre para la tarjeta.");
+        return false;
+      }
+
+      if (ultimos && !/^[0-9]{4}$/.test(ultimos)) {
+        estadoMensaje("Solo se permiten los últimos cuatro dígitos.");
+        return false;
+      }
+
+      resultado = {
+        correcta: true,
+        tarjeta: {
+          id: crearId(),
+          alias,
+          ultimos
+        }
+      };
+    }
+
+    const borrador = clonarDatos();
+    borrador.tarjetas.push(resultado.tarjeta);
 
     return confirmarCambio(
       borrador,
@@ -361,19 +448,35 @@
     );
   }
 
-  function renderizarOperaciones() {
-    const contenedor = document.getElementById("listaOperaciones");
-    if (!contenedor) return;
-
+  function obtenerOperacionesOrdenadas() {
     const filtroCuenta =
       document.getElementById("filtroCuenta")?.value || "todas";
 
     const orden =
       document.getElementById("filtroOrden")?.value || "fecha";
 
-    let operaciones = datos.operaciones.filter(op =>
-      filtroCuenta === "todas" || op.cuenta === filtroCuenta
-    );
+    let operaciones;
+
+    if (
+      moduloOperaciones &&
+      typeof moduloOperaciones.filtrarOperaciones === "function"
+    ) {
+      operaciones = moduloOperaciones.filtrarOperaciones(
+        datos.operaciones,
+        filtroCuenta
+      );
+    } else {
+      operaciones = datos.operaciones.filter(op =>
+        filtroCuenta === "todas" || op.cuenta === filtroCuenta
+      );
+    }
+
+    if (
+      moduloOperaciones &&
+      typeof moduloOperaciones.ordenarOperaciones === "function"
+    ) {
+      return moduloOperaciones.ordenarOperaciones(operaciones, orden);
+    }
 
     if (orden === "importeDesc") {
       operaciones.sort((a, b) => b.importe - a.importe);
@@ -385,6 +488,14 @@
       );
     }
 
+    return operaciones;
+  }
+
+  function renderizarOperaciones() {
+    const contenedor = document.getElementById("listaOperaciones");
+    if (!contenedor) return;
+
+    const operaciones = obtenerOperacionesOrdenadas();
     contenedor.replaceChildren();
 
     if (!operaciones.length) {
@@ -431,6 +542,18 @@
     const contenedor = document.getElementById("listaTarjetas");
     if (!contenedor) return;
 
+    if (
+      moduloTarjetas &&
+      typeof moduloTarjetas.renderizarLista === "function"
+    ) {
+      const correcto = moduloTarjetas.renderizarLista(
+        contenedor,
+        datos.tarjetas
+      );
+
+      if (correcto) return;
+    }
+
     contenedor.replaceChildren();
 
     if (!datos.tarjetas.length) {
@@ -466,6 +589,35 @@
     });
   }
 
+  function renderizarResumenReportes() {
+    const contenedor = document.getElementById("resumenReportes");
+    if (!contenedor || !moduloReportes) return;
+
+    if (typeof moduloReportes.resumir !== "function") return;
+
+    const resumen = moduloReportes.resumir(datos.operaciones);
+    contenedor.replaceChildren();
+
+    const elementos = [
+      ["Operaciones registradas", String(resumen.cantidadOperaciones)],
+      ["Ingresos registrados", dinero(resumen.ingresos)],
+      ["Gastos registrados", dinero(resumen.gastos)],
+      ["Balance neto de operaciones", dinero(resumen.balanceNeto)]
+    ];
+
+    elementos.forEach(([titulo, valor]) => {
+      const bloque = document.createElement("div");
+      bloque.className = "operacion";
+
+      bloque.append(
+        elementoTexto("span", titulo, "operacion-nombre"),
+        elementoTexto("strong", valor, "importe")
+      );
+
+      contenedor.appendChild(bloque);
+    });
+  }
+
   function renderizar() {
     const bancario = document.getElementById("saldoBancario");
     const tarjetas = document.getElementById("saldoTarjetas");
@@ -480,6 +632,7 @@
 
     renderizarOperaciones();
     renderizarTarjetas();
+    renderizarResumenReportes();
   }
 
   function exportarCSV() {
@@ -500,7 +653,6 @@
     function escapar(valor) {
       let texto = String(valor);
 
-      // Evita que hojas de cálculo interpreten texto como fórmula.
       if (/^[\s]*[=+\-@]/.test(texto)) {
         texto = "'" + texto;
       }
@@ -531,8 +683,41 @@
       estadoMensaje("No se pudo iniciar la exportación.");
     } finally {
       enlace.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+  }
+
+  function exportarPresupuestosJSON() {
+    if (
+      !window.NovaFinanzasPresupuestos ||
+      typeof window.NovaFinanzasPresupuestos.exportarJSON !== "function"
+    ) {
+      estadoMensaje("El módulo de presupuestos no está disponible.");
+      return;
+    }
+
+    try {
+      const contenido =
+        window.NovaFinanzasPresupuestos.exportarJSON();
+
+      const blob = new Blob([contenido], {
+        type: "application/json;charset=utf-8"
+      });
+
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+
+      enlace.href = url;
+      enlace.download = "nova-presupuestos-demo.json";
+      enlace.hidden = true;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
 
       setTimeout(() => URL.revokeObjectURL(url), 1500);
+      estadoMensaje("Exportación de presupuestos preparada.");
+    } catch (error) {
+      estadoMensaje("No se pudieron exportar los presupuestos.");
     }
   }
 
@@ -612,6 +797,9 @@
 
     document.getElementById("exportar")
       ?.addEventListener("click", exportarCSV);
+
+    document.getElementById("exportarPresupuestos")
+      ?.addEventListener("click", exportarPresupuestosJSON);
 
     document.getElementById("borrarDatos")
       ?.addEventListener("click", () => {

@@ -1,165 +1,13 @@
+
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101426">
+  <meta name="description" content="Panel privado de administración de rangos de Nova Apps.">
   <title>Nova Apps — Administrar rangos</title>
-
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #101426;
-      --panel: #191f35;
-      --panel2: #222a43;
-      --text: #f3f5ff;
-      --muted: #aeb8d4;
-      --accent: #a5a6ff;
-      --border: #343d5b;
-      --danger: #ff9292;
-      --success: #8de0b0;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 18px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-
-    main {
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 1.7rem;
-    }
-
-    h2 {
-      font-size: 1.15rem;
-    }
-
-    p {
-      line-height: 1.5;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .panel {
-      margin-top: 16px;
-      padding: 18px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    button, select {
-      width: 100%;
-      min-height: 45px;
-      margin-top: 8px;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font: inherit;
-    }
-
-    button {
-      background: var(--accent);
-      color: #111329;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      color: var(--text);
-      background: var(--panel2);
-      border: 1px solid var(--border);
-    }
-
-    button:disabled, select:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-
-    select {
-      color: var(--text);
-      background: var(--panel2);
-    }
-
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: 600;
-    }
-
-    #message {
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .profile {
-      margin-top: 12px;
-      padding: 14px;
-      background: var(--panel2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    .profile strong {
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .profile select {
-      margin-top: 8px;
-    }
-
-    .status-error {
-      color: var(--danger);
-    }
-
-    .status-success {
-      color: var(--success);
-    }
-
-    .rank-icon {
-      width: 58px;
-      height: 58px;
-      object-fit: contain;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .row button {
-      flex: 1 1 160px;
-    }
-
-    code {
-      overflow-wrap: anywhere;
-    }
-  </style>
+  <link rel="stylesheet" href="./css/admin-rangos.css">
 </head>
 
 <body>
@@ -229,7 +77,6 @@
     supabase,
     guardPage,
     setupAuth,
-    say,
     RANKS,
     RANK_ASSETS,
     RANK_ICON_BASE
@@ -252,27 +99,6 @@
     const el = $('#message');
     el.textContent = message;
     el.className = type ? `status-${type}` : '';
-  }
-
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, char => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[char]);
-  }
-
-  function rankOptions(currentRank) {
-    return RANKS
-      .filter(rank => rank !== 'Propietario')
-      .map(rank =>
-        `<option value="${escapeHtml(rank)}"
-          ${rank === currentRank ? 'selected' : ''}>
-          ${escapeHtml(rank)}
-        </option>`
-      ).join('');
   }
 
   function profileLabel(profile) {
@@ -333,15 +159,17 @@
       list.append(card);
     }
 
-    selectRank.value = profiles.find(
+    const selectedProfile = profiles.find(
       profile => profile.user_id === selectUser.value
-    )?.rango || 'Usuario';
+    );
+
+    selectRank.value = selectedProfile?.rango || 'Usuario';
   }
 
   async function loadRanks() {
     if (busy) return;
-    busy = true;
 
+    busy = true;
     selectUser.disabled = true;
     refreshButton.disabled = true;
     saveButton.disabled = true;
@@ -351,7 +179,6 @@
     showMessage('Consultando perfiles en Supabase...');
 
     try {
-      // Diagnóstico: consulta directa, sin ordenar los resultados.
       const { data, error } = await supabase
         .from('nova_user_profiles')
         .select('user_id,rango,updated_at');
@@ -363,7 +190,7 @@
           'Código: ' + (error.code || 'no disponible') + '\n' +
           'Mensaje: ' + error.message + '\n' +
           'Detalle: ' + (error.details || 'sin detalle') + '\n' +
-          'Consejo: comprueba las políticas RLS y la respuesta de Supabase.',
+          'Comprueba la existencia de la tabla y sus políticas RLS.',
           'error'
         );
         return;
@@ -371,7 +198,6 @@
 
       profiles = Array.isArray(data) ? data : [];
 
-      // Orden local en JavaScript, sin pedir ordenamiento a PostgreSQL.
       profiles.sort((a, b) =>
         String(a.user_id || '').localeCompare(String(b.user_id || ''))
       );
@@ -381,7 +207,7 @@
       showMessage(
         profiles.length
           ? 'Perfiles cargados: ' + profiles.length
-          : 'La consulta funcionó, pero la tabla no contiene perfiles visibles.',
+          : 'La consulta funcionó, pero no hay perfiles visibles.',
         profiles.length ? 'success' : ''
       );
     } catch (error) {
@@ -449,7 +275,7 @@
       if (!data || data.length === 0) {
         showMessage(
           'Supabase no devolvió ningún perfil actualizado. ' +
-          'Verifica que el usuario exista y que las políticas RLS permitan actualizarlo.',
+          'Verifica que el perfil exista y que las políticas RLS permitan actualizarlo.',
           'error'
         );
         return;
@@ -472,6 +298,7 @@
 
   selectUser.addEventListener('change', () => {
     const profile = profiles.find(item => item.user_id === selectUser.value);
+
     if (profile && profile.rango !== 'Propietario') {
       selectRank.value = RANKS.includes(profile.rango)
         ? profile.rango

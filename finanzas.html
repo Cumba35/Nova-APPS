@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101827">
-  <meta name="description" content="Nova Finanzas: cuentas, tarjetas y operaciones.">
+  <meta name="description" content="Nova Finanzas: cuentas, tarjetas, operaciones y presupuestos.">
   <title>Nova Finanzas | Nova Apps</title>
   <link rel="stylesheet" href="css/finanzas.css">
 </head>
@@ -22,15 +22,14 @@
     <section>
       <h1 class="titulo">Tu espacio financiero</h1>
       <p class="suave">
-        Consulta y organiza tus cuentas, tarjetas y operaciones.
+        Organiza tus cuentas, tarjetas, operaciones y presupuestos.
       </p>
     </section>
 
-    <div class="aviso">
+    <div class="aviso" role="note">
       <strong>Versión de demostración.</strong>
-      Los saldos, tarjetas y transferencias todavía no están conectados
-      a servicios financieros. Los datos se guardan únicamente en este
-      navegador y no representan dinero real.
+      Los datos se guardan en este navegador. No hay conexión bancaria,
+      pagos reales ni transferencias de dinero.
     </div>
 
     <section class="rejilla" aria-label="Resumen de saldos">
@@ -69,7 +68,7 @@
         <div class="campo">
           <label for="opNombre">Descripción</label>
           <input id="opNombre" maxlength="80" required
-            placeholder="Ej.: Compra de prueba">
+            autocomplete="off" placeholder="Ej.: Compra de prueba">
         </div>
 
         <div class="campo">
@@ -82,7 +81,7 @@
 
         <div class="campo">
           <label for="opCuenta">Cuenta de demostración</label>
-          <select id="opCuenta">
+          <select id="opCuenta" required>
             <option value="bancario">Saldo bancario</option>
             <option value="tarjeta">Saldo en tarjetas</option>
           </select>
@@ -104,14 +103,14 @@
       <h2 class="seccion-titulo">Transferencia de demostración</h2>
 
       <p class="suave">
-        Esta acción solo simula una transferencia entre los dos saldos
-        locales. No envía dinero ni contacta con bancos.
+        Simula movimientos entre los dos saldos locales.
+        No se envía dinero a cuentas bancarias ni tarjetas cubanas.
       </p>
 
       <form id="formTransferencia">
         <div class="campo">
           <label for="trOrigen">Cuenta de origen</label>
-          <select id="trOrigen">
+          <select id="trOrigen" required>
             <option value="bancario">Saldo bancario</option>
             <option value="tarjeta">Saldo en tarjetas</option>
           </select>
@@ -119,7 +118,7 @@
 
         <div class="campo">
           <label for="trDestino">Cuenta de destino</label>
-          <select id="trDestino">
+          <select id="trDestino" required>
             <option value="tarjeta">Saldo en tarjetas</option>
             <option value="bancario">Saldo bancario</option>
           </select>
@@ -141,15 +140,15 @@
       <h2 class="seccion-titulo">Tarjeta de demostración</h2>
 
       <p class="suave">
-        Guarda solo un alias y los últimos cuatro dígitos. No introduzcas
-        números completos de tarjetas, PIN ni códigos de seguridad.
+        Guarda un alias y, opcionalmente, los últimos cuatro dígitos.
+        Nunca introduzcas el número completo, el PIN ni el código de seguridad.
       </p>
 
       <form id="formTarjeta">
         <div class="campo">
           <label for="tarAlias">Nombre o alias</label>
           <input id="tarAlias" maxlength="40" required
-            placeholder="Mi tarjeta">
+            autocomplete="off" placeholder="Mi tarjeta">
         </div>
 
         <div class="campo">
@@ -168,7 +167,15 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="presupuestos">
+      <h2 class="seccion-titulo">Presupuestos</h2>
+      <p class="suave">
+        Módulo preparado para incorporar la gestión de límites de gasto.
+        La interfaz de presupuestos se conectará en el siguiente paso.
+      </p>
+    </section>
+
+    <section class="panel" id="operaciones">
       <h2 class="seccion-titulo">Operaciones recientes</h2>
 
       <div class="filtros">
@@ -211,6 +218,13 @@
     </footer>
   </main>
 
+  <!-- Utilidades financieras: deben cargarse antes del archivo principal. -->
+  <script src="js/finanzas/operaciones.js" defer></script>
+  <script src="js/finanzas/tarjetas.js" defer></script>
+  <script src="js/finanzas/reportes.js" defer></script>
+  <script src="js/finanzas/presupuestos.js" defer></script>
+
+  <!-- Control de la interfaz y almacenamiento local de demostración. -->
   <script src="js/finanzas/finanzas.js" defer></script>
 </body>
 </html>

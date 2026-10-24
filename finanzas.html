@@ -32,6 +32,7 @@
       pagos reales ni transferencias de dinero.
     </div>
 
+    <!-- RESUMEN DE SALDOS -->
     <section class="rejilla" aria-label="Resumen de saldos">
       <article class="panel">
         <span class="etiqueta">Saldo bancario de demostración</span>
@@ -44,6 +45,7 @@
       </article>
     </section>
 
+    <!-- ACCIONES -->
     <nav class="acciones" aria-label="Acciones financieras">
       <button class="boton primario" type="button"
         data-formulario="operacionForm">
@@ -59,8 +61,14 @@
         data-formulario="tarjetaForm">
         + Añadir tarjeta
       </button>
+
+      <button class="boton" type="button"
+        data-formulario="presupuestoForm">
+        + Crear presupuesto
+      </button>
     </nav>
 
+    <!-- REGISTRAR OPERACIÓN -->
     <section class="panel formulario" id="operacionForm">
       <h2 class="seccion-titulo">Registrar operación de prueba</h2>
 
@@ -99,6 +107,7 @@
       </form>
     </section>
 
+    <!-- TRANSFERENCIAS SIMULADAS -->
     <section class="panel formulario" id="transferenciaForm">
       <h2 class="seccion-titulo">Transferencia de demostración</h2>
 
@@ -136,6 +145,7 @@
       </form>
     </section>
 
+    <!-- TARJETAS -->
     <section class="panel formulario" id="tarjetaForm">
       <h2 class="seccion-titulo">Tarjeta de demostración</h2>
 
@@ -167,14 +177,118 @@
       </div>
     </section>
 
+    <!-- PRESUPUESTOS -->
     <section class="panel" id="presupuestos">
-      <h2 class="seccion-titulo">Presupuestos</h2>
+      <h2 class="seccion-titulo">Mis presupuestos</h2>
+
       <p class="suave">
-        Módulo preparado para incorporar la gestión de límites de gasto.
-        La interfaz de presupuestos se conectará en el siguiente paso.
+        Establece límites de gasto por categoría y controla cuánto dinero
+        has utilizado y cuánto te queda disponible.
       </p>
+
+      <div class="rejilla" aria-label="Resumen de presupuestos">
+        <article class="panel">
+          <span class="etiqueta">Límites establecidos</span>
+          <strong class="saldo" id="presupuestoTotal">0,00 CUP</strong>
+        </article>
+
+        <article class="panel">
+          <span class="etiqueta">Gasto contabilizado</span>
+          <strong class="saldo" id="presupuestoGastado">0,00 CUP</strong>
+        </article>
+
+        <article class="panel">
+          <span class="etiqueta">Disponible del presupuesto</span>
+          <strong class="saldo" id="presupuestoDisponible">0,00 CUP</strong>
+        </article>
+      </div>
+
+      <div class="acciones">
+        <button class="boton primario" id="nuevoPresupuesto"
+          type="button">
+          + Nuevo presupuesto
+        </button>
+      </div>
+
+      <section class="formulario" id="presupuestoForm">
+        <h3 class="seccion-titulo" id="presupuestoTitulo">
+          Crear presupuesto
+        </h3>
+
+        <form id="formPresupuesto">
+          <input type="hidden" id="presupuestoId">
+
+          <div class="campo">
+            <label for="presupuestoNombre">Nombre del presupuesto</label>
+            <input id="presupuestoNombre" type="text"
+              maxlength="60" required
+              placeholder="Ej.: Gastos del hogar">
+          </div>
+
+          <div class="campo">
+            <label for="presupuestoCategoria">Categoría</label>
+            <select id="presupuestoCategoria" required>
+              <option value="">Selecciona una categoría</option>
+              <option value="alimentacion">Alimentación</option>
+              <option value="transporte">Transporte</option>
+              <option value="hogar">Hogar</option>
+              <option value="servicios">Servicios</option>
+              <option value="salud">Salud</option>
+              <option value="educacion">Educación</option>
+              <option value="entretenimiento">Entretenimiento</option>
+              <option value="compras">Compras</option>
+              <option value="otros">Otros</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="presupuestoLimite">Límite de gasto (CUP)</label>
+            <input id="presupuestoLimite" type="number"
+              min="0.01" max="1000000000" step="0.01"
+              required placeholder="Ej.: 5000">
+          </div>
+
+          <div class="campo">
+            <label for="presupuestoPeriodo">Período</label>
+            <select id="presupuestoPeriodo" required>
+              <option value="semanal">Semanal</option>
+              <option value="mensual" selected>Mensual</option>
+              <option value="anual">Anual</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="presupuestoInicio">Fecha de inicio</label>
+            <input id="presupuestoInicio" type="date" required>
+          </div>
+
+          <div class="campo">
+            <label for="presupuestoFin">Fecha de finalización (opcional)</label>
+            <input id="presupuestoFin" type="date">
+          </div>
+
+          <div class="acciones">
+            <button class="boton primario" type="submit"
+              id="guardarPresupuesto">
+              Guardar presupuesto
+            </button>
+
+            <button class="boton" type="button"
+              id="cancelarPresupuesto">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <div id="listaPresupuestos" aria-live="polite">
+        <div class="vacio">Todavía no hay presupuestos creados.</div>
+      </div>
+
+      <p id="estadoPresupuestos" class="estado" aria-live="polite"></p>
     </section>
 
+    <!-- OPERACIONES RECIENTES -->
     <section class="panel" id="operaciones">
       <h2 class="seccion-titulo">Operaciones recientes</h2>
 
@@ -218,13 +332,11 @@
     </footer>
   </main>
 
-  <!-- Utilidades financieras: deben cargarse antes del archivo principal. -->
+  <!-- MÓDULOS FINANCIEROS -->
   <script src="js/finanzas/operaciones.js" defer></script>
   <script src="js/finanzas/tarjetas.js" defer></script>
   <script src="js/finanzas/reportes.js" defer></script>
   <script src="js/finanzas/presupuestos.js" defer></script>
-
-  <!-- Control de la interfaz y almacenamiento local de demostración. -->
   <script src="js/finanzas/finanzas.js" defer></script>
 </body>
 </html>

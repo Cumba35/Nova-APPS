@@ -1,0 +1,158 @@
+
+:root {
+  color-scheme: dark;
+  --bg: #10182a;
+  --surface: #18243a;
+  --text: #f3f6ff;
+  --muted: #aebbd2;
+  --line: #33425e;
+  --accent: #a5a6ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px system-ui, Arial, sans-serif;
+  line-height: 1.55;
+}
+
+.wrap {
+  width: min(920px, 92%);
+  margin: auto;
+}
+
+header {
+  padding: 18px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+a {
+  color: var(--accent);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  margin: 16px 0;
+}
+
+h1 {
+  font-size: clamp(1.7rem, 5vw, 2.5rem);
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 11px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: #0f1728;
+  color: var(--text);
+  font: inherit;
+}
+
+button {
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #252f4a;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  margin: 3px;
+  font: inherit;
+}
+
+button.primary {
+  background: #5556d8;
+  border-color: #5556d8;
+  color: #fff;
+  font-weight: 700;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.row {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  min-height: 1.5em;
+  color: #a5e6bb;
+}
+
+.danger {
+  color: #ffb3b3;
+}
+
+.inline {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.inline > * {
+  flex: 1;
+  min-width: 0;
+}
+
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 680px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  header {
+    align-items: flex-start;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .inline > * {
+    flex-basis: 100%;
+  }
+}

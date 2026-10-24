@@ -1,158 +1,430 @@
 
+/* =========================================================
+   NOVA Apps — Mi espacio privado
+   Archivo: css/mi-espacio.css
+   Compatible con mi-espacio.html
+   ========================================================= */
+
 :root {
   color-scheme: dark;
+
   --bg: #10182a;
   --surface: #18243a;
+  --surface-alt: #0f1728;
   --text: #f3f6ff;
   --muted: #aebbd2;
   --line: #33425e;
   --accent: #a5a6ff;
+  --accent-hover: #c4c5ff;
+  --primary: #5556d8;
+  --primary-hover: #6869ee;
+  --success: #a5e6bb;
+  --danger: #ffb3b3;
+  --focus: #d8d9ff;
+
+  --radius: 12px;
+  --shadow: 0 8px 24px rgb(0 0 0 / 18%);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
+  min-width: 280px;
+  min-height: 100vh;
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 16px system-ui, Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
-.wrap {
-  width: min(920px, 92%);
-  margin: auto;
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-header {
-  padding: 18px 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
 }
 
 a {
   color: var(--accent);
+  text-underline-offset: 3px;
 }
 
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 18px;
-  margin: 16px 0;
+a:hover {
+  color: var(--accent-hover);
 }
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* Contenedor principal */
+
+.wrap {
+  width: min(100% - 32px, 920px);
+  margin-inline: auto;
+  padding-bottom: 32px;
+}
+
+/* Cabecera */
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+header strong {
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+header a {
+  display: inline-block;
+  padding: 6px 0;
+}
+
+/* Títulos y texto */
 
 h1 {
+  margin: 24px 0 12px;
   font-size: clamp(1.7rem, 5vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
 }
 
 h2 {
+  margin: 0 0 14px;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+p {
   margin-top: 0;
 }
+
+.muted {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+strong {
+  overflow-wrap: anywhere;
+}
+
+/* Tarjetas y distribución */
 
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 16px;
+}
+
+.card {
+  min-width: 0;
+  margin: 16px 0;
+  padding: 18px;
+
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.card > :last-child {
+  margin-bottom: 0;
+}
+
+/* Formularios */
+
+form {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: block;
+  min-width: 0;
+  font-weight: 600;
 }
 
 .field {
   display: block;
   width: 100%;
+  min-width: 0;
+  min-height: 44px;
   margin: 8px 0;
-  padding: 11px;
+
+  padding: 11px 12px;
+  border: 1px solid var(--line);
   border-radius: 9px;
-  border: 1px solid var(--line);
-  background: #0f1728;
+
+  background: var(--surface-alt);
   color: var(--text);
   font: inherit;
+  line-height: 1.4;
 }
 
-button {
-  padding: 10px 13px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #252f4a;
-  color: var(--text);
-  font-weight: 700;
-  cursor: pointer;
-  margin: 3px;
-  font: inherit;
+.field::placeholder {
+  color: #8998b2;
+  opacity: 1;
 }
 
-button.primary {
-  background: #5556d8;
-  border-color: #5556d8;
-  color: #fff;
-  font-weight: 700;
+.field:focus {
+  border-color: var(--accent);
 }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+textarea.field {
+  min-height: 76px;
+  resize: vertical;
 }
 
-.muted {
+input[type="file"].field,
+input[type="file"] {
+  max-width: 100%;
   color: var(--muted);
   font-size: 0.9rem;
 }
 
-.row {
-  border-top: 1px solid var(--line);
-  padding: 12px 0;
-  overflow-wrap: anywhere;
+input[type="datetime-local"] {
+  color-scheme: dark;
 }
 
-.status {
-  min-height: 1.5em;
-  color: #a5e6bb;
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--primary);
 }
 
-.danger {
-  color: #ffb3b3;
+/* Botones */
+
+button {
+  min-height: 42px;
+  margin: 3px;
+  padding: 10px 14px;
+
+  border: 1px solid var(--line);
+  border-radius: 10px;
+
+  background: #252f4a;
+  color: var(--text);
+
+  font: inherit;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: center;
+
+  cursor: pointer;
+  touch-action: manipulation;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
 }
+
+button:hover {
+  background: #303d5c;
+  border-color: #536487;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 750;
+}
+
+button.primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Grupos de controles */
 
 .inline {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
   align-items: center;
+  gap: 8px;
+  margin: 12px 0;
 }
 
 .inline > * {
-  flex: 1;
+  flex: 1 1 150px;
   min-width: 0;
 }
 
-input,
-textarea,
-select {
-  max-width: 100%;
+.inline label {
+  overflow-wrap: anywhere;
 }
+
+/* Filas de recordatorios y credenciales */
+
+.row {
+  min-width: 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.row strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.row p {
+  margin: 6px 0;
+}
+
+.row button {
+  margin: 6px 5px 0 0;
+}
+
+.row .muted {
+  font-size: 0.9rem;
+}
+
+/* Mensajes de estado */
+
+.status {
+  min-height: 1.5em;
+  margin: 10px 0;
+  color: var(--success);
+  overflow-wrap: anywhere;
+}
+
+.danger {
+  color: var(--danger);
+}
+
+/* Elementos ocultos por JavaScript */
 
 [hidden] {
   display: none !important;
 }
 
+/* Ajustes para móviles Android */
+
 @media (max-width: 680px) {
-  .grid {
-    grid-template-columns: 1fr;
+  .wrap {
+    width: calc(100% - 24px);
   }
 
   header {
     align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px 0;
+  }
+
+  header a {
+    padding: 8px 0;
+  }
+
+  h1 {
+    margin-top: 20px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
   }
 
   .card {
+    margin: 12px 0;
     padding: 14px;
+    border-radius: 13px;
+  }
+
+  .inline {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
   }
 
   .inline > * {
-    flex-basis: 100%;
+    width: 100%;
+    flex: 1 1 auto;
+  }
+
+  button {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Pantallas muy estrechas */
+
+@media (max-width: 360px) {
+  .wrap {
+    width: calc(100% - 18px);
+  }
+
+  .card {
+    padding: 11px;
+  }
+
+  h2 {
+    font-size: 1.12rem;
+  }
+
+  .field {
+    padding: 10px;
+  }
+}
+
+/* Reducir animaciones si el usuario lo prefiere */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

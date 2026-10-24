@@ -2,18 +2,7 @@
 /* =========================================================
    NOVA FINANZAS — GESTOR DE PRESUPUESTOS
    Archivo: js/finanzas/presupuestos.js
-   Versión: 2.0.0
-
-   Funciones:
-   - Crear, editar y eliminar presupuestos.
-   - Presupuestos semanales, mensuales y anuales.
-   - Cálculo de gastos por categoría.
-   - Resumen de límites, gastos y dinero disponible.
-   - Avisos de límites alcanzados o excedidos.
-   - Almacenamiento local.
-   - Exportación de presupuestos a JSON.
-
-   No conectado todavía a Supabase.
+   Versión: 3.0.0
 ========================================================= */
 
 (function (global) {
@@ -21,7 +10,6 @@
 
   const CLAVE_PRESUPUESTOS = "nova_finanzas_presupuestos_v1";
   const CLAVE_FINANZAS = "nova_finanzas_demo_v1";
-
   const MAX_LIMITE = 1000000000;
 
   const CATEGORIAS = {
@@ -36,9 +24,7 @@
     otros: "Otros"
   };
 
-  function obtener(id) {
-    return document.getElementById(id);
-  }
+  const obtener = id => global.document.getElementById(id);
 
   function texto(valor, maximo) {
     return typeof valor === "string"
@@ -46,24 +32,16 @@
       : "";
   }
 
-  function importeValido(valor) {
-    return Number.isFinite(Number(valor)) &&
-      Number(valor) > 0 &&
-      Number(valor) <= MAX_LIMITE;
-  }
-
   function redondear(valor) {
-    return Math.round(
-      (valor + Number.EPSILON) * 100
-    ) / 100;
+    return Math.round((valor + Number.EPSILON) * 100) / 100;
   }
 
   function fechaLocal(fecha) {
-    const anio = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-    const dia = String(fecha.getDate()).padStart(2, "0");
-
-    return anio + "-" + mes + "-" + dia;
+    return [
+      fecha.getFullYear(),
+      String(fecha.getMonth() + 1).padStart(2, "0"),
+      String(fecha.getDate()).padStart(2, "0")
+    ].join("-");
   }
 
   function hoy() {
@@ -71,42 +49,34 @@
   }
 
   function dinero(valor) {
-    return Number(valor).toLocaleString("es-ES", {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return "0,00 CUP";
+
+    return numero.toLocaleString("es-ES", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }) + " CUP";
   }
 
   function nuevoId() {
-    if (
-      global.crypto &&
-      typeof global.crypto.randomUUID === "function"
-    ) {
+    if (global.crypto &&
+        typeof global.crypto.randomUUID === "function") {
       return global.crypto.randomUUID();
     }
 
-    return "presupuesto-" +
-      Date.now().toString(36) + "-" +
-      Math.random().toString(36).slice(2, 10);
+    return "presupuesto-" + Date.now().toString(36) +
+      "-" + Math.random().toString(36).slice(2, 10);
   }
 
   function mostrarEstado(mensaje) {
     const elemento = obtener("estadoPresupuestos");
-
-    if (elemento) {
-      elemento.textContent = mensaje;
-    }
+    if (elemento) elemento.textContent = mensaje;
   }
 
   function elementoTexto(etiqueta, contenido, clase) {
-    const elemento = document.createElement(etiqueta);
-
+    const elemento = global.document.createElement(etiqueta);
     elemento.textContent = contenido;
-
-    if (clase) {
-      elemento.className = clase;
-    }
-
+    if (clase) elemento.className = clase;
     return elemento;
   }
 
@@ -116,28 +86,25 @@
         CLAVE_PRESUPUESTOS
       );
 
-      if (!contenido) {
-        return [];
-      }
+      const lista = contenido ? JSON.parse(contenido) : [];
 
-      const lista = JSON.parse(contenido);
+      if (!Array.isArray(lista)) return [];
 
-      if (!Array.isArray(lista)) {
-        return [];
-      }
-
-      return lista.filter(function (item) {
-        return item &&
-          typeof item.id === "string" &&
-          typeof item.categoria === "string" &&
-          importeValido(item.limite);
-      });
-    } catch (error) {
-      console.error(
-        "Nova Finanzas: error al leer presupuestos.",
-        error
+      return lista.filter(item =>
+        item &&
+        typeof item.id === "string" &&
+        typeof item.nombre === "string" &&
+        Object.prototype.hasOwnProperty.call(
+          CATEGORIAS, item.categoria
+        ) &&
+        Number.isFinite(Number(item.limite)) &&
+        Number(item.limite) > 0 &&
+        Number(item.limite) <= MAX_LIMITE &&
+        ["semanal", "mensual", "anual"].includes(item.periodo) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(item.inicio)
       );
-
+    } catch (error) {
+      console.error("Error al leer presupuestos:", error);
       return [];
     }
   }
@@ -148,45 +115,26 @@
         CLAVE_PRESUPUESTOS,
         JSON.stringify(lista)
       );
-
       return true;
     } catch (error) {
-      console.error(
-        "Nova Finanzas: error al guardar presupuestos.",
-        error
-      );
-
-      mostrarEstado(
-        "No se pudieron guardar los presupuestos. " +
-        "Comprueba el almacenamiento del navegador."
-      );
-
+      console.error("Error al guardar presupuestos:", error);
+      mostrarEstado("No se pudieron guardar los presupuestos.");
       return false;
     }
   }
 
   function leerOperaciones() {
     try {
-      const contenido = global.localStorage.getItem(
-        CLAVE_FINANZAS
-      );
-
-      if (!contenido) {
-        return [];
-      }
+      const contenido = global.localStorage.getItem(CLAVE_FINANZAS);
+      if (!contenido) return [];
 
       const datos = JSON.parse(contenido);
 
-      return datos &&
-        Array.isArray(datos.operaciones)
+      return datos && Array.isArray(datos.operaciones)
         ? datos.operaciones
         : [];
     } catch (error) {
-      console.error(
-        "Nova Finanzas: error al leer operaciones.",
-        error
-      );
-
+      console.error("Error al leer operaciones:", error);
       return [];
     }
   }
@@ -198,10 +146,6 @@
       .toLowerCase();
   }
 
-  function obtenerNombreCategoria(clave) {
-    return CATEGORIAS[clave] || clave;
-  }
-
   function validar(datos, lista, idActual) {
     const errores = [];
 
@@ -210,69 +154,51 @@
     }
 
     if (!Object.prototype.hasOwnProperty.call(
-      CATEGORIAS,
-      datos.categoria
+      CATEGORIAS, datos.categoria
     )) {
       errores.push("Selecciona una categoría válida.");
     }
 
-    if (!importeValido(datos.limite)) {
-      errores.push(
-        "El límite debe ser mayor que cero y no superar 1.000.000.000 CUP."
-      );
+    const limite = Number(datos.limite);
+
+    if (!Number.isFinite(limite) ||
+        limite <= 0 || limite > MAX_LIMITE) {
+      errores.push("El límite debe ser mayor que cero y no superar 1.000.000.000 CUP.");
     }
 
-    if (!["semanal", "mensual", "anual"].includes(
-      datos.periodo
-    )) {
+    if (!["semanal", "mensual", "anual"].includes(datos.periodo)) {
       errores.push("Selecciona un período válido.");
     }
 
-    if (
-      !/^\d{4}-\d{2}-\d{2}$/.test(datos.inicio) ||
-      !Number.isFinite(Date.parse(datos.inicio + "T12:00:00"))
-    ) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(datos.inicio) ||
+        !Number.isFinite(Date.parse(datos.inicio + "T12:00:00"))) {
       errores.push("Selecciona una fecha de inicio válida.");
     }
 
-    if (datos.fin) {
-      if (
-        !/^\d{4}-\d{2}-\d{2}$/.test(datos.fin) ||
-        datos.fin < datos.inicio
-      ) {
-        errores.push(
-          "La fecha final debe ser igual o posterior al inicio."
-        );
-      }
+    if (datos.fin &&
+        (!/^\d{4}-\d{2}-\d{2}$/.test(datos.fin) ||
+         datos.fin < datos.inicio)) {
+      errores.push("La fecha final debe ser igual o posterior al inicio.");
     }
 
-    const duplicado = lista.some(function (item) {
-      return item.id !== idActual &&
-        item.categoria === datos.categoria &&
-        item.periodo === datos.periodo &&
-        item.inicio === datos.inicio;
-    });
+    const duplicado = lista.some(item =>
+      item.id !== idActual &&
+      item.categoria === datos.categoria &&
+      item.periodo === datos.periodo &&
+      item.inicio === datos.inicio
+    );
 
     if (duplicado) {
-      errores.push(
-        "Ya existe un presupuesto de esa categoría, período e inicio."
-      );
+      errores.push("Ya existe un presupuesto con esa categoría, período e inicio.");
     }
 
-    return {
-      valido: errores.length === 0,
-      errores: errores
-    };
+    return { valido: errores.length === 0, errores };
   }
 
   function calcularFinPeriodo(presupuesto) {
-    const inicio = new Date(
-      presupuesto.inicio + "T12:00:00"
-    );
+    if (presupuesto.fin) return presupuesto.fin;
 
-    if (presupuesto.fin) {
-      return presupuesto.fin;
-    }
+    const inicio = new Date(presupuesto.inicio + "T12:00:00");
 
     if (presupuesto.periodo === "semanal") {
       inicio.setDate(inicio.getDate() + 6);
@@ -290,50 +216,29 @@
   function calcular(presupuesto, operaciones) {
     const inicio = presupuesto.inicio;
     const fin = calcularFinPeriodo(presupuesto);
-
     const categoriaBuscada = normalizarCategoria(
-      obtenerNombreCategoria(presupuesto.categoria)
+      presupuesto.categoria
     );
 
-    const gastos = operaciones.filter(function (op) {
-      if (!op || op.tipo !== "gasto") {
-        return false;
-      }
+    const gastos = operaciones.filter(op => {
+      if (!op || op.tipo !== "gasto") return false;
 
+      const categoria = normalizarCategoria(op.categoria || "otros");
       const fecha = texto(op.fecha, 30).slice(0, 10);
 
-      /*
-       * Las operaciones deben guardar una categoría independiente.
-       * No se asigna una categoría basándose solamente en la descripción.
-       */
-      const categoria = normalizarCategoria(
-        texto(op.categoria, 60)
-      );
-
-      const coincideCategoria =
-        categoria === normalizarCategoria(presupuesto.categoria) ||
-        categoria === categoriaBuscada;
-
-      return coincideCategoria &&
+      return categoria === categoriaBuscada &&
         fecha >= inicio &&
-        fecha <= fin;
+        fecha <= fin &&
+        Number.isFinite(Number(op.importe)) &&
+        Number(op.importe) > 0;
     });
 
-    const gastado = redondear(
-      gastos.reduce(function (total, op) {
-        const valor = Number(op.importe);
-
-        if (!Number.isFinite(valor) || valor <= 0) {
-          return total;
-        }
-
-        return total + valor;
-      }, 0)
-    );
+    const gastado = redondear(gastos.reduce(
+      (total, op) => total + Number(op.importe), 0
+    ));
 
     const limite = Number(presupuesto.limite);
     const disponible = redondear(limite - gastado);
-
     const porcentaje = limite > 0
       ? redondear(gastado / limite * 100)
       : 0;
@@ -343,12 +248,12 @@
       nombre: presupuesto.nombre,
       categoria: presupuesto.categoria,
       periodo: presupuesto.periodo,
-      inicio: inicio,
-      fin: fin,
-      limite: limite,
-      gastado: gastado,
-      disponible: disponible,
-      porcentaje: porcentaje,
+      inicio,
+      fin,
+      limite,
+      gastado,
+      disponible,
+      porcentaje,
       alcanzado: gastado >= limite,
       excedido: gastado > limite,
       cantidadOperaciones: gastos.length
@@ -370,14 +275,10 @@
     const revision = validar(entrada, lista, "");
 
     if (!revision.valido) {
-      return {
-        correcto: false,
-        errores: revision.errores
-      };
+      return { correcto: false, errores: revision.errores };
     }
 
     const fecha = new Date().toISOString();
-
     const presupuesto = {
       id: nuevoId(),
       ...entrada,
@@ -385,25 +286,19 @@
       actualizadoEn: fecha
     };
 
-    if (!guardarPresupuestos(lista.concat(presupuesto))) {
+    if (!guardarPresupuestos([...lista, presupuesto])) {
       return {
         correcto: false,
         errores: ["No se pudo guardar el presupuesto."]
       };
     }
 
-    return {
-      correcto: true,
-      presupuesto: presupuesto
-    };
+    return { correcto: true, presupuesto };
   }
 
   function actualizar(id, cambios) {
     const lista = leerPresupuestos();
-
-    const indice = lista.findIndex(function (item) {
-      return item.id === id;
-    });
+    const indice = lista.findIndex(item => item.id === id);
 
     if (indice < 0) {
       return {
@@ -412,10 +307,8 @@
       };
     }
 
-    const anterior = lista[indice];
-
     const actualizado = {
-      ...anterior,
+      ...lista[indice],
       nombre: texto(cambios.nombre, 60),
       categoria: cambios.categoria,
       limite: Number(cambios.limite),
@@ -428,10 +321,7 @@
     const revision = validar(actualizado, lista, id);
 
     if (!revision.valido) {
-      return {
-        correcto: false,
-        errores: revision.errores
-      };
+      return { correcto: false, errores: revision.errores };
     }
 
     lista[indice] = actualizado;
@@ -443,23 +333,14 @@
       };
     }
 
-    return {
-      correcto: true,
-      presupuesto: actualizado
-    };
+    return { correcto: true, presupuesto: actualizado };
   }
 
   function eliminar(id) {
     const lista = leerPresupuestos();
+    const restantes = lista.filter(item => item.id !== id);
 
-    const restantes = lista.filter(function (item) {
-      return item.id !== id;
-    });
-
-    if (restantes.length === lista.length) {
-      return false;
-    }
-
+    if (restantes.length === lista.length) return false;
     return guardarPresupuestos(restantes);
   }
 
@@ -467,9 +348,9 @@
     const presupuestos = leerPresupuestos();
     const operaciones = leerOperaciones();
 
-    const resultados = presupuestos.map(function (item) {
-      return calcular(item, operaciones);
-    });
+    const resultados = presupuestos.map(item =>
+      calcular(item, operaciones)
+    );
 
     return {
       cantidad: resultados.length,
@@ -480,14 +361,9 @@
         resultados.reduce((total, item) => total + item.gastado, 0)
       ),
       disponibleTotal: redondear(
-        resultados.reduce(
-          (total, item) => total + item.disponible,
-          0
-        )
+        resultados.reduce((total, item) => total + item.disponible, 0)
       ),
-      excedidos: resultados.filter(
-        item => item.excedido
-      ).length,
+      excedidos: resultados.filter(item => item.excedido).length,
       presupuestos: resultados
     };
   }
@@ -499,39 +375,26 @@
     const gastado = obtener("presupuestoGastado");
     const disponible = obtener("presupuestoDisponible");
 
-    if (total) {
-      total.textContent = dinero(datos.limiteTotal);
-    }
-
-    if (gastado) {
-      gastado.textContent = dinero(datos.gastadoTotal);
-    }
-
-    if (disponible) {
-      disponible.textContent = dinero(datos.disponibleTotal);
-    }
+    if (total) total.textContent = dinero(datos.limiteTotal);
+    if (gastado) gastado.textContent = dinero(datos.gastadoTotal);
+    if (disponible) disponible.textContent = dinero(datos.disponibleTotal);
   }
 
   function crearBoton(etiqueta, accion, id) {
-    const boton = document.createElement("button");
-
+    const boton = global.document.createElement("button");
     boton.type = "button";
     boton.className = "boton";
     boton.textContent = etiqueta;
     boton.dataset.accionPresupuesto = accion;
     boton.dataset.presupuestoId = id;
-
     return boton;
   }
 
   function renderizar() {
     const contenedor = obtener("listaPresupuestos");
-
     actualizarResumen();
 
-    if (!contenedor) {
-      return;
-    }
+    if (!contenedor) return;
 
     const lista = leerPresupuestos();
     const operaciones = leerOperaciones();
@@ -539,96 +402,53 @@
     contenedor.replaceChildren();
 
     if (!lista.length) {
-      contenedor.appendChild(
-        elementoTexto(
-          "div",
-          "Todavía no hay presupuestos creados.",
-          "vacio"
-        )
-      );
-
+      contenedor.appendChild(elementoTexto(
+        "div",
+        "Todavía no hay presupuestos creados.",
+        "vacio"
+      ));
       return;
     }
 
-    lista.forEach(function (presupuesto) {
+    lista.forEach(presupuesto => {
       const datos = calcular(presupuesto, operaciones);
-
-      const tarjeta = document.createElement("article");
+      const tarjeta = global.document.createElement("article");
       tarjeta.className = "operacion presupuesto-item";
 
-      const contenido = document.createElement("div");
+      const contenido = global.document.createElement("div");
       contenido.className = "presupuesto-contenido";
 
-      contenido.appendChild(
-        elementoTexto(
-          "h3",
-          presupuesto.nombre,
-          "operacion-nombre"
-        )
-      );
-
-      contenido.appendChild(
+      contenido.append(
+        elementoTexto("h3", presupuesto.nombre, "operacion-nombre"),
         elementoTexto(
           "p",
-          obtenerNombreCategoria(presupuesto.categoria) +
-          " · " + presupuesto.periodo,
+          CATEGORIAS[presupuesto.categoria] + " · " + presupuesto.periodo,
           "operacion-fecha"
-        )
+        ),
+        elementoTexto("p", "Período: " + datos.inicio + " — " + datos.fin),
+        elementoTexto("p", "Límite: " + dinero(datos.limite)),
+        elementoTexto("p", "Gastado: " + dinero(datos.gastado)),
+        elementoTexto("p", "Disponible: " + dinero(datos.disponible))
       );
 
-      contenido.appendChild(
-        elementoTexto(
-          "p",
-          "Período: " + datos.inicio + " — " + datos.fin
-        )
-      );
-
-      contenido.appendChild(
-        elementoTexto(
-          "p",
-          "Límite: " + dinero(datos.limite)
-        )
-      );
-
-      contenido.appendChild(
-        elementoTexto(
-          "p",
-          "Gastado: " + dinero(datos.gastado)
-        )
-      );
-
-      contenido.appendChild(
-        elementoTexto(
-          "p",
-          "Disponible: " + dinero(datos.disponible)
-        )
-      );
-
-      const barra = document.createElement("progress");
+      const barra = global.document.createElement("progress");
       barra.max = 100;
       barra.value = Math.min(100, Math.max(0, datos.porcentaje));
-      barra.setAttribute(
-        "aria-label",
-        "Porcentaje del presupuesto utilizado"
-      );
-
+      barra.setAttribute("aria-label", "Porcentaje del presupuesto utilizado");
       contenido.appendChild(barra);
 
-      contenido.appendChild(
-        elementoTexto(
-          "p",
-          datos.excedido
-            ? "Presupuesto excedido."
-            : datos.alcanzado
-              ? "Has alcanzado el límite."
-              : datos.porcentaje.toFixed(2) + "% utilizado.",
-          "estado"
-        )
-      );
+      contenido.appendChild(elementoTexto(
+        "p",
+        datos.excedido
+          ? "Presupuesto excedido."
+          : datos.alcanzado
+            ? "Has alcanzado el límite."
+            : datos.porcentaje.toFixed(2) + "% utilizado.",
+        "estado"
+      ));
 
-      const acciones = document.createElement("div");
+      const acciones = global.document.createElement("div");
       acciones.className = "acciones";
-
       acciones.append(
         crearBoton("Editar", "editar", presupuesto.id),
         crearBoton("Eliminar", "eliminar", presupuesto.id)
@@ -641,10 +461,7 @@
 
   function limpiarFormulario() {
     const formulario = obtener("formPresupuesto");
-
-    if (formulario) {
-      formulario.reset();
-    }
+    if (formulario) formulario.reset();
 
     const id = obtener("presupuestoId");
     const titulo = obtener("presupuestoTitulo");
@@ -661,25 +478,31 @@
 
   function abrirFormulario(presupuesto) {
     const formulario = obtener("presupuestoForm");
-
     if (!formulario) return;
 
     formulario.classList.add("abierto");
 
     if (presupuesto) {
-      obtener("presupuestoId").value = presupuesto.id;
-      obtener("presupuestoNombre").value = presupuesto.nombre;
-      obtener("presupuestoCategoria").value = presupuesto.categoria;
-      obtener("presupuestoLimite").value = presupuesto.limite;
-      obtener("presupuestoPeriodo").value = presupuesto.periodo;
-      obtener("presupuestoInicio").value = presupuesto.inicio;
-      obtener("presupuestoFin").value = presupuesto.fin || "";
+      const campos = {
+        presupuestoId: presupuesto.id,
+        presupuestoNombre: presupuesto.nombre,
+        presupuestoCategoria: presupuesto.categoria,
+        presupuestoLimite: presupuesto.limite,
+        presupuestoPeriodo: presupuesto.periodo,
+        presupuestoInicio: presupuesto.inicio,
+        presupuestoFin: presupuesto.fin || ""
+      };
 
-      obtener("presupuestoTitulo").textContent =
-        "Editar presupuesto";
+      Object.entries(campos).forEach(([id, valor]) => {
+        const campo = obtener(id);
+        if (campo) campo.value = valor;
+      });
 
-      obtener("guardarPresupuesto").textContent =
-        "Guardar cambios";
+      const titulo = obtener("presupuestoTitulo");
+      const boton = obtener("guardarPresupuesto");
+
+      if (titulo) titulo.textContent = "Editar presupuesto";
+      if (boton) boton.textContent = "Guardar cambios";
     } else {
       limpiarFormulario();
       formulario.classList.add("abierto");
@@ -693,40 +516,34 @@
 
   function datosDelFormulario() {
     return {
-      nombre: obtener("presupuestoNombre").value,
-      categoria: obtener("presupuestoCategoria").value,
-      limite: Number(obtener("presupuestoLimite").value),
-      periodo: obtener("presupuestoPeriodo").value,
-      inicio: obtener("presupuestoInicio").value,
-      fin: obtener("presupuestoFin").value
+      nombre: obtener("presupuestoNombre")?.value || "",
+      categoria: obtener("presupuestoCategoria")?.value || "",
+      limite: Number(obtener("presupuestoLimite")?.value),
+      periodo: obtener("presupuestoPeriodo")?.value || "",
+      inicio: obtener("presupuestoInicio")?.value || "",
+      fin: obtener("presupuestoFin")?.value || ""
     };
   }
 
   function exportarJSON() {
     try {
-      const contenido = JSON.stringify(
-        leerPresupuestos(),
-        null,
-        2
+      const blob = new Blob(
+        [JSON.stringify(leerPresupuestos(), null, 2)],
+        { type: "application/json;charset=utf-8" }
       );
 
-      const blob = new Blob([contenido], {
-        type: "application/json;charset=utf-8"
-      });
-
       const url = URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
+      const enlace = global.document.createElement("a");
 
       enlace.href = url;
       enlace.download = "nova-presupuestos.json";
       enlace.hidden = true;
 
-      document.body.appendChild(enlace);
+      global.document.body.appendChild(enlace);
       enlace.click();
       enlace.remove();
 
       URL.revokeObjectURL(url);
-
       mostrarEstado("Exportación de presupuestos iniciada.");
     } catch (error) {
       mostrarEstado("No se pudieron exportar los presupuestos.");
@@ -735,102 +552,75 @@
 
   function configurar() {
     const inicio = obtener("presupuestoInicio");
+    if (inicio && !inicio.value) inicio.value = hoy();
 
-    if (inicio && !inicio.value) {
-      inicio.value = hoy();
-    }
+    obtener("formPresupuesto")?.addEventListener("submit", evento => {
+      evento.preventDefault();
 
-    obtener("formPresupuesto")
-      ?.addEventListener("submit", function (evento) {
-        evento.preventDefault();
+      const id = obtener("presupuestoId")?.value || "";
+      const resultado = id
+        ? actualizar(id, datosDelFormulario())
+        : crear(datosDelFormulario());
 
-        const id = obtener("presupuestoId").value;
-        const datos = datosDelFormulario();
+      if (!resultado.correcto) {
+        mostrarEstado(resultado.errores.join(" "));
+        return;
+      }
 
-        const resultado = id
-          ? actualizar(id, datos)
-          : crear(datos);
+      limpiarFormulario();
+      renderizar();
+      mostrarEstado(
+        id
+          ? "Presupuesto actualizado correctamente."
+          : "Presupuesto creado correctamente."
+      );
+    });
 
-        if (!resultado.correcto) {
-          mostrarEstado(resultado.errores.join(" "));
-          return;
-        }
+    obtener("nuevoPresupuesto")?.addEventListener("click", () => {
+      abrirFormulario(null);
+    });
 
-        limpiarFormulario();
+    obtener("cancelarPresupuesto")?.addEventListener("click", () => {
+      limpiarFormulario();
+      obtener("presupuestoForm")?.classList.remove("abierto");
+    });
+
+    obtener("listaPresupuestos")?.addEventListener("click", evento => {
+      const objetivo = evento.target;
+      if (!objetivo || typeof objetivo.closest !== "function") return;
+
+      const boton = objetivo.closest("[data-accion-presupuesto]");
+      if (!boton) return;
+
+      const id = boton.dataset.presupuestoId;
+      const accion = boton.dataset.accionPresupuesto;
+      const presupuesto = leerPresupuestos().find(item => item.id === id);
+
+      if (!presupuesto) {
+        mostrarEstado("No se encontró ese presupuesto.");
         renderizar();
+        return;
+      }
 
-        mostrarEstado(
-          id
-            ? "Presupuesto actualizado correctamente."
-            : "Presupuesto creado correctamente."
-        );
-      });
+      if (accion === "editar") {
+        abrirFormulario(presupuesto);
+        return;
+      }
 
-    obtener("nuevoPresupuesto")
-      ?.addEventListener("click", function () {
-        abrirFormulario(null);
-      });
-
-    obtener("cancelarPresupuesto")
-      ?.addEventListener("click", function () {
-        limpiarFormulario();
-
-        obtener("presupuestoForm")
-          ?.classList.remove("abierto");
-      });
-
-    obtener("listaPresupuestos")
-      ?.addEventListener("click", function (evento) {
-        const boton = evento.target.closest(
-          "[data-accion-presupuesto]"
-        );
-
-        if (!boton) return;
-
-        const id = boton.dataset.presupuestoId;
-        const accion = boton.dataset.accionPresupuesto;
-
-        const presupuesto = leerPresupuestos().find(
-          item => item.id === id
-        );
-
-        if (!presupuesto) {
-          mostrarEstado("No se encontró ese presupuesto.");
+      if (accion === "eliminar" &&
+          global.confirm("¿Quieres eliminar este presupuesto? Esta acción no se puede deshacer.")) {
+        if (eliminar(id)) {
           renderizar();
-          return;
+          mostrarEstado("Presupuesto eliminado.");
+        } else {
+          mostrarEstado("No se pudo eliminar el presupuesto.");
         }
+      }
+    });
 
-        if (accion === "editar") {
-          abrirFormulario(presupuesto);
-          return;
-        }
-
-        if (accion === "eliminar") {
-          if (!global.confirm(
-            "¿Quieres eliminar este presupuesto? " +
-            "Esta acción no se puede deshacer."
-          )) {
-            return;
-          }
-
-          if (eliminar(id)) {
-            renderizar();
-            mostrarEstado("Presupuesto eliminado.");
-          } else {
-            mostrarEstado("No se pudo eliminar el presupuesto.");
-          }
-        }
-      });
-
-    /*
-     * Las operaciones cambian desde finanzas.js.
-     * Se vuelve a calcular el resumen cuando cambia el historial.
-     */
-    global.addEventListener("storage", function (evento) {
-      if (
-        evento.key === CLAVE_FINANZAS ||
-        evento.key === CLAVE_PRESUPUESTOS
-      ) {
+    global.addEventListener("storage", evento => {
+      if (evento.key === CLAVE_FINANZAS ||
+          evento.key === CLAVE_PRESUPUESTOS) {
         renderizar();
       }
     });
@@ -838,31 +628,27 @@
     renderizar();
   }
 
-  const API = {
-    version: "2.0.0",
+  global.NovaFinanzasPresupuestos = Object.freeze({
+    version: "3.0.0",
     categorias: { ...CATEGORIAS },
     obtenerTodos: leerPresupuestos,
     obtenerOperaciones: leerOperaciones,
-    validar: validar,
-    crear: crear,
-    actualizar: actualizar,
-    eliminar: eliminar,
-    calcular: calcular,
-    resumen: resumen,
-    renderizar: renderizar,
-    exportarJSON: exportarJSON,
+    validar,
+    crear,
+    actualizar,
+    eliminar,
+    calcular,
+    resumen,
+    renderizar,
+    exportarJSON,
     formatearImporte: dinero
-  };
-
-  global.NovaFinanzasPresupuestos = API;
+  });
 
   if (global.document) {
-    if (document.readyState === "loading") {
-      document.addEventListener(
-        "DOMContentLoaded",
-        configurar,
-        { once: true }
-      );
+    if (global.document.readyState === "loading") {
+      global.document.addEventListener("DOMContentLoaded", configurar, {
+        once: true
+      });
     } else {
       configurar();
     }

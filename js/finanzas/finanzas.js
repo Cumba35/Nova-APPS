@@ -2,15 +2,8 @@
 /*
  * NOVA APPS — FINANZAS
  * Archivo: js/finanzas/finanzas.js
- *
- * Prototipo local de demostración.
- * No conecta con bancos ni mueve dinero real.
- *
- * Módulos compatibles:
- * - operaciones.js
- * - tarjetas.js
- * - reportes.js
- * - presupuestos.js
+ * Versión: 3.0.0
+ * Prototipo local: no mueve dinero real.
  */
 
 "use strict";
@@ -24,33 +17,32 @@
   const CUENTAS = ["bancario", "tarjeta"];
   const TIPOS = ["ingreso", "gasto"];
 
+  const CATEGORIAS = {
+    alimentacion: "Alimentación",
+    transporte: "Transporte",
+    hogar: "Hogar",
+    servicios: "Servicios",
+    salud: "Salud",
+    educacion: "Educación",
+    entretenimiento: "Entretenimiento",
+    compras: "Compras",
+    otros: "Otros"
+  };
+
   const moduloOperaciones = window.NovaFinanzasOperaciones;
   const moduloTarjetas = window.NovaFinanzasTarjetas;
   const moduloReportes = window.NovaFinanzasReportes;
 
   function estadoInicial() {
     return {
-      saldos: {
-        bancario: 0,
-        tarjeta: 0
-      },
+      saldos: { bancario: 0, tarjeta: 0 },
       operaciones: [],
       tarjetas: []
     };
   }
 
-  function numeroValido(valor) {
-    return typeof valor === "number" &&
-      Number.isFinite(valor);
-  }
-
   function redondear(valor) {
     return Math.round((valor + Number.EPSILON) * 100) / 100;
-  }
-
-  function textoSeguro(valor, maximo) {
-    if (typeof valor !== "string") return "";
-    return valor.trim().slice(0, maximo);
   }
 
   function dinero(valor) {
@@ -63,6 +55,12 @@
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }) + " CUP";
+  }
+
+  function textoSeguro(valor, maximo) {
+    return typeof valor === "string"
+      ? valor.trim().slice(0, maximo)
+      : "";
   }
 
   function crearId() {
@@ -81,29 +79,31 @@
       : "Saldo en tarjetas";
   }
 
+  function nombreCategoria(categoria) {
+    return CATEGORIAS[categoria] || CATEGORIAS.otros;
+  }
+
   function estadoMensaje(mensaje) {
     const elemento = document.getElementById("estado");
     if (elemento) elemento.textContent = mensaje;
   }
 
-  function elementoTexto(etiqueta, texto, clase) {
+  function elementoTexto(etiqueta, contenido, clase) {
     const elemento = document.createElement(etiqueta);
-    elemento.textContent = texto;
-
+    elemento.textContent = contenido;
     if (clase) elemento.className = clase;
-
     return elemento;
   }
 
   function validarOperacion(op) {
-    if (!op || typeof op !== "object") return false;
-
-    return (
+    return Boolean(
+      op &&
       typeof op.id === "string" &&
       typeof op.descripcion === "string" &&
       TIPOS.includes(op.tipo) &&
       CUENTAS.includes(op.cuenta) &&
-      numeroValido(op.importe) &&
+      typeof op.importe === "number" &&
+      Number.isFinite(op.importe) &&
       op.importe > 0 &&
       op.importe <= MAX_IMPORTE &&
       typeof op.fecha === "string" &&
@@ -112,27 +112,21 @@
   }
 
   function validarTarjeta(tarjeta) {
-    if (!tarjeta || typeof tarjeta !== "object") {
-      return false;
-    }
-
-    return (
+    return Boolean(
+      tarjeta &&
       typeof tarjeta.id === "string" &&
       typeof tarjeta.alias === "string" &&
       tarjeta.alias.trim().length > 0 &&
       tarjeta.alias.length <= 40 &&
       typeof tarjeta.ultimos === "string" &&
-      (
-        tarjeta.ultimos === "" ||
-        /^[0-9]{4}$/.test(tarjeta.ultimos)
-      )
+      (tarjeta.ultimos === "" ||
+        /^[0-9]{4}$/.test(tarjeta.ultimos))
     );
   }
 
   function cargar() {
     try {
       const guardado = localStorage.getItem(CLAVE);
-
       if (!guardado) return estadoInicial();
 
       const original = JSON.parse(guardado);
@@ -141,26 +135,27 @@
         !original ||
         typeof original !== "object" ||
         !original.saldos ||
-        !numeroValido(original.saldos.bancario) ||
-        !numeroValido(original.saldos.tarjeta) ||
+        !Number.isFinite(original.saldos.bancario) ||
+        !Number.isFinite(original.saldos.tarjeta) ||
         original.saldos.bancario < 0 ||
         original.saldos.tarjeta < 0 ||
         !Array.isArray(original.operaciones) ||
         !Array.isArray(original.tarjetas)
       ) {
-        estadoMensaje(
-          "Los datos guardados no son válidos. Se inició una demostración nueva."
-        );
+        estadoMensaje("Los datos guardados no son válidos.");
         return estadoInicial();
       }
 
       const operaciones = original.operaciones
         .filter(validarOperacion)
-        .slice(-MAX_OPERACIONES);
-
-      const tarjetas = original.tarjetas
-        .filter(validarTarjeta)
-        .slice(0, MAX_TARJETAS);
+        .slice(-MAX_OPERACIONES)
+        .map(op => ({
+          ...op,
+          categoria: Object.prototype.hasOwnProperty.call(
+            CATEGORIAS,
+            op.categoria
+          ) ? op.categoria : "otros"
+        }));
 
       return {
         saldos: {
@@ -168,12 +163,12 @@
           tarjeta: redondear(original.saldos.tarjeta)
         },
         operaciones,
-        tarjetas
+        tarjetas: original.tarjetas
+          .filter(validarTarjeta)
+          .slice(0, MAX_TARJETAS)
       };
     } catch (error) {
-      console.error(
-        "Nova Finanzas: no se pudieron cargar los datos locales."
-      );
+      console.error("Nova Finanzas: error al cargar datos locales.");
       return estadoInicial();
     }
   }
@@ -185,21 +180,19 @@
       localStorage.setItem(CLAVE, JSON.stringify(datos));
       return true;
     } catch (error) {
-      console.error(
-        "Nova Finanzas: no se pudieron guardar los datos."
-      );
-
-      estadoMensaje(
-        "No se pudieron guardar los datos. Comprueba el espacio disponible."
-      );
-
+      estadoMensaje("No se pudieron guardar los datos en este navegador.");
       return false;
     }
   }
 
-  /*
-   * Confirma un cambio solo si el almacenamiento local funciona.
-   */
+  function clonarDatos() {
+    return {
+      saldos: { ...datos.saldos },
+      operaciones: datos.operaciones.map(op => ({ ...op })),
+      tarjetas: datos.tarjetas.map(tarjeta => ({ ...tarjeta }))
+    };
+  }
+
   function confirmarCambio(borrador, mensaje) {
     const anterior = datos;
     datos = borrador;
@@ -211,42 +204,34 @@
     }
 
     renderizar();
+
+    if (window.NovaFinanzasPresupuestos &&
+        typeof window.NovaFinanzasPresupuestos.renderizar === "function") {
+      window.NovaFinanzasPresupuestos.renderizar();
+    }
+
     estadoMensaje(mensaje);
     return true;
   }
 
-  function clonarDatos() {
-    return {
-      saldos: {
-        bancario: datos.saldos.bancario,
-        tarjeta: datos.saldos.tarjeta
-      },
-      operaciones: datos.operaciones.slice(),
-      tarjetas: datos.tarjetas.slice()
-    };
-  }
-
-  function agregarOperacion(descripcion, tipo, cuenta, importe) {
+  function agregarOperacion(descripcion, tipo, cuenta, categoria, importe) {
     descripcion = textoSeguro(descripcion, 80);
 
     if (
       !descripcion ||
       !TIPOS.includes(tipo) ||
       !CUENTAS.includes(cuenta) ||
-      !numeroValido(importe) ||
+      !Object.prototype.hasOwnProperty.call(CATEGORIAS, categoria) ||
+      !Number.isFinite(importe) ||
       importe <= 0 ||
       importe > MAX_IMPORTE
     ) {
-      estadoMensaje(
-        "Comprueba la descripción, el tipo, la cuenta y el importe."
-      );
+      estadoMensaje("Comprueba la descripción, tipo, cuenta, categoría e importe.");
       return false;
     }
 
     if (datos.operaciones.length >= MAX_OPERACIONES) {
-      estadoMensaje(
-        "Se alcanzó el límite de operaciones de demostración."
-      );
+      estadoMensaje("Se alcanzó el límite de operaciones de demostración.");
       return false;
     }
 
@@ -254,10 +239,8 @@
 
     let resultado;
 
-    if (
-      moduloOperaciones &&
-      typeof moduloOperaciones.aplicarOperacion === "function"
-    ) {
+    if (moduloOperaciones &&
+        typeof moduloOperaciones.aplicarOperacion === "function") {
       resultado = moduloOperaciones.aplicarOperacion(
         datos.saldos,
         datos.operaciones,
@@ -268,6 +251,12 @@
         estadoMensaje(resultado.error);
         return false;
       }
+
+      resultado.operaciones = resultado.operaciones.map(op =>
+        op.id === resultado.operacion.id
+          ? { ...op, categoria }
+          : op
+      );
     } else {
       const cambio = tipo === "ingreso" ? importe : -importe;
       const saldoNuevo = redondear(datos.saldos[cuenta] + cambio);
@@ -282,6 +271,7 @@
         descripcion,
         tipo,
         cuenta,
+        categoria,
         importe,
         fecha: new Date().toISOString()
       };
@@ -311,18 +301,16 @@
       !CUENTAS.includes(origen) ||
       !CUENTAS.includes(destino) ||
       origen === destino ||
-      !numeroValido(importe) ||
+      !Number.isFinite(importe) ||
       importe <= 0 ||
       importe > MAX_IMPORTE
     ) {
-      estadoMensaje("Elige dos cuentas diferentes y un importe válido.");
+      estadoMensaje("Selecciona dos cuentas diferentes y un importe válido.");
       return false;
     }
 
     if (datos.operaciones.length + 2 > MAX_OPERACIONES) {
-      estadoMensaje(
-        "No hay espacio para registrar esta transferencia simulada."
-      );
+      estadoMensaje("No hay espacio para registrar esta transferencia simulada.");
       return false;
     }
 
@@ -330,10 +318,8 @@
 
     let resultado;
 
-    if (
-      moduloOperaciones &&
-      typeof moduloOperaciones.simularTransferencia === "function"
-    ) {
+    if (moduloOperaciones &&
+        typeof moduloOperaciones.simularTransferencia === "function") {
       resultado = moduloOperaciones.simularTransferencia(
         datos.saldos,
         datos.operaciones,
@@ -346,22 +332,22 @@
         estadoMensaje(resultado.error);
         return false;
       }
+
+      resultado.operaciones = resultado.operaciones.map(op => ({
+        ...op,
+        categoria: "otros"
+      }));
     } else {
       if (datos.saldos[origen] < importe) {
         estadoMensaje("El saldo de demostración es insuficiente.");
         return false;
       }
 
-      const fecha = new Date().toISOString();
       const nuevosSaldos = { ...datos.saldos };
+      nuevosSaldos[origen] = redondear(nuevosSaldos[origen] - importe);
+      nuevosSaldos[destino] = redondear(nuevosSaldos[destino] + importe);
 
-      nuevosSaldos[origen] = redondear(
-        nuevosSaldos[origen] - importe
-      );
-
-      nuevosSaldos[destino] = redondear(
-        nuevosSaldos[destino] + importe
-      );
+      const fecha = new Date().toISOString();
 
       resultado = {
         correcta: true,
@@ -372,6 +358,7 @@
             descripcion: "Transferencia simulada de salida",
             tipo: "gasto",
             cuenta: origen,
+            categoria: "otros",
             importe,
             fecha
           },
@@ -380,6 +367,7 @@
             descripcion: "Transferencia simulada de entrada",
             tipo: "ingreso",
             cuenta: destino,
+            categoria: "otros",
             importe,
             fecha
           }
@@ -408,10 +396,8 @@
 
     let resultado;
 
-    if (
-      moduloTarjetas &&
-      typeof moduloTarjetas.crearTarjeta === "function"
-    ) {
+    if (moduloTarjetas &&
+        typeof moduloTarjetas.crearTarjeta === "function") {
       resultado = moduloTarjetas.crearTarjeta(alias, ultimos);
 
       if (!resultado.correcta) {
@@ -431,36 +417,26 @@
 
       resultado = {
         correcta: true,
-        tarjeta: {
-          id: crearId(),
-          alias,
-          ultimos
-        }
+        tarjeta: { id: crearId(), alias, ultimos }
       };
     }
 
     const borrador = clonarDatos();
     borrador.tarjetas.push(resultado.tarjeta);
 
-    return confirmarCambio(
-      borrador,
-      "Tarjeta de demostración guardada."
-    );
+    return confirmarCambio(borrador, "Tarjeta de demostración guardada.");
   }
 
   function obtenerOperacionesOrdenadas() {
     const filtroCuenta =
       document.getElementById("filtroCuenta")?.value || "todas";
-
     const orden =
       document.getElementById("filtroOrden")?.value || "fecha";
 
     let operaciones;
 
-    if (
-      moduloOperaciones &&
-      typeof moduloOperaciones.filtrarOperaciones === "function"
-    ) {
+    if (moduloOperaciones &&
+        typeof moduloOperaciones.filtrarOperaciones === "function") {
       operaciones = moduloOperaciones.filtrarOperaciones(
         datos.operaciones,
         filtroCuenta
@@ -471,10 +447,8 @@
       );
     }
 
-    if (
-      moduloOperaciones &&
-      typeof moduloOperaciones.ordenarOperaciones === "function"
-    ) {
+    if (moduloOperaciones &&
+        typeof moduloOperaciones.ordenarOperaciones === "function") {
       return moduloOperaciones.ordenarOperaciones(operaciones, orden);
     }
 
@@ -483,9 +457,7 @@
     } else if (orden === "importeAsc") {
       operaciones.sort((a, b) => a.importe - b.importe);
     } else {
-      operaciones.sort((a, b) =>
-        Date.parse(b.fecha) - Date.parse(a.fecha)
-      );
+      operaciones.sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
     }
 
     return operaciones;
@@ -510,27 +482,24 @@
       fila.className = "operacion";
 
       const detalles = document.createElement("div");
-
       detalles.appendChild(
         elementoTexto("div", op.descripcion, "operacion-nombre")
       );
-
       detalles.appendChild(
         elementoTexto(
           "div",
           nombreCuenta(op.cuenta) + " · " +
+            nombreCategoria(op.categoria || "otros") + " · " +
             new Date(op.fecha).toLocaleString(),
           "operacion-fecha"
         )
       );
 
       const signo = op.tipo === "ingreso" ? "+" : "−";
-
       const importe = elementoTexto(
         "div",
         signo + dinero(op.importe),
-        "importe " +
-          (op.tipo === "ingreso" ? "positivo" : "negativo")
+        "importe " + (op.tipo === "ingreso" ? "positivo" : "negativo")
       );
 
       fila.append(detalles, importe);
@@ -542,27 +511,18 @@
     const contenedor = document.getElementById("listaTarjetas");
     if (!contenedor) return;
 
-    if (
-      moduloTarjetas &&
-      typeof moduloTarjetas.renderizarLista === "function"
-    ) {
-      const correcto = moduloTarjetas.renderizarLista(
-        contenedor,
-        datos.tarjetas
-      );
-
-      if (correcto) return;
+    if (moduloTarjetas &&
+        typeof moduloTarjetas.renderizarLista === "function") {
+      if (moduloTarjetas.renderizarLista(contenedor, datos.tarjetas)) {
+        return;
+      }
     }
 
     contenedor.replaceChildren();
 
     if (!datos.tarjetas.length) {
       contenedor.appendChild(
-        elementoTexto(
-          "div",
-          "No hay tarjetas de demostración.",
-          "vacio"
-        )
+        elementoTexto("div", "No hay tarjetas de demostración.", "vacio")
       );
       return;
     }
@@ -571,17 +531,14 @@
       const fila = document.createElement("div");
       fila.className = "operacion";
 
-      fila.appendChild(
+      fila.append(
         elementoTexto(
           "div",
           tarjeta.ultimos
             ? tarjeta.alias + " · **** " + tarjeta.ultimos
             : tarjeta.alias,
           "operacion-nombre"
-        )
-      );
-
-      fila.appendChild(
+        ),
         elementoTexto("span", "DEMO", "etiqueta")
       );
 
@@ -591,29 +548,26 @@
 
   function renderizarResumenReportes() {
     const contenedor = document.getElementById("resumenReportes");
-    if (!contenedor || !moduloReportes) return;
-
-    if (typeof moduloReportes.resumir !== "function") return;
+    if (!contenedor || !moduloReportes ||
+        typeof moduloReportes.resumir !== "function") {
+      return;
+    }
 
     const resumen = moduloReportes.resumir(datos.operaciones);
     contenedor.replaceChildren();
 
-    const elementos = [
+    [
       ["Operaciones registradas", String(resumen.cantidadOperaciones)],
       ["Ingresos registrados", dinero(resumen.ingresos)],
       ["Gastos registrados", dinero(resumen.gastos)],
       ["Balance neto de operaciones", dinero(resumen.balanceNeto)]
-    ];
-
-    elementos.forEach(([titulo, valor]) => {
+    ].forEach(([titulo, valor]) => {
       const bloque = document.createElement("div");
       bloque.className = "operacion";
-
       bloque.append(
         elementoTexto("span", titulo, "operacion-nombre"),
         elementoTexto("strong", valor, "importe")
       );
-
       contenedor.appendChild(bloque);
     });
   }
@@ -622,13 +576,8 @@
     const bancario = document.getElementById("saldoBancario");
     const tarjetas = document.getElementById("saldoTarjetas");
 
-    if (bancario) {
-      bancario.textContent = dinero(datos.saldos.bancario);
-    }
-
-    if (tarjetas) {
-      tarjetas.textContent = dinero(datos.saldos.tarjeta);
-    }
+    if (bancario) bancario.textContent = dinero(datos.saldos.bancario);
+    if (tarjetas) tarjetas.textContent = dinero(datos.saldos.tarjeta);
 
     renderizarOperaciones();
     renderizarTarjetas();
@@ -637,7 +586,7 @@
 
   function exportarCSV() {
     const filas = [
-      ["Descripción", "Tipo", "Cuenta", "Importe CUP", "Fecha"]
+      ["Descripción", "Tipo", "Cuenta", "Categoría", "Importe CUP", "Fecha"]
     ];
 
     datos.operaciones.forEach(op => {
@@ -645,6 +594,7 @@
         op.descripcion,
         op.tipo,
         nombreCuenta(op.cuenta),
+        nombreCategoria(op.categoria || "otros"),
         op.importe.toFixed(2),
         op.fecha
       ]);
@@ -652,11 +602,7 @@
 
     function escapar(valor) {
       let texto = String(valor);
-
-      if (/^[\s]*[=+\-@]/.test(texto)) {
-        texto = "'" + texto;
-      }
-
+      if (/^[\s]*[=+\-@]/.test(texto)) texto = "'" + texto;
       return '"' + texto.replace(/"/g, '""') + '"';
     }
 
@@ -664,10 +610,7 @@
       fila.map(escapar).join(";")
     ).join("\r\n");
 
-    const blob = new Blob([csv], {
-      type: "text/csv;charset=utf-8;"
-    });
-
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const enlace = document.createElement("a");
 
@@ -677,7 +620,6 @@
       enlace.hidden = true;
       document.body.appendChild(enlace);
       enlace.click();
-
       estadoMensaje("Archivo CSV de demostración preparado.");
     } catch (error) {
       estadoMensaje("No se pudo iniciar la exportación.");
@@ -687,65 +629,25 @@
     }
   }
 
-  function exportarPresupuestosJSON() {
-    if (
-      !window.NovaFinanzasPresupuestos ||
-      typeof window.NovaFinanzasPresupuestos.exportarJSON !== "function"
-    ) {
-      estadoMensaje("El módulo de presupuestos no está disponible.");
-      return;
-    }
-
-    try {
-      const contenido =
-        window.NovaFinanzasPresupuestos.exportarJSON();
-
-      const blob = new Blob([contenido], {
-        type: "application/json;charset=utf-8"
-      });
-
-      const url = URL.createObjectURL(blob);
-      const enlace = document.createElement("a");
-
-      enlace.href = url;
-      enlace.download = "nova-presupuestos-demo.json";
-      enlace.hidden = true;
-      document.body.appendChild(enlace);
-      enlace.click();
-      enlace.remove();
-
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-      estadoMensaje("Exportación de presupuestos preparada.");
-    } catch (error) {
-      estadoMensaje("No se pudieron exportar los presupuestos.");
-    }
-  }
-
   function configurar() {
     document.getElementById("formOperacion")
       ?.addEventListener("submit", evento => {
         evento.preventDefault();
 
-        const descripcion =
-          document.getElementById("opNombre").value.trim();
-
+        const descripcion = document.getElementById("opNombre").value.trim();
         const tipo = document.getElementById("opTipo").value;
         const cuenta = document.getElementById("opCuenta").value;
-        const importe = Number(
-          document.getElementById("opImporte").value
-        );
+        const categoria = document.getElementById("opCategoria")?.value || "otros";
+        const importe = Number(document.getElementById("opImporte").value);
 
-        if (agregarOperacion(descripcion, tipo, cuenta, importe)) {
+        if (agregarOperacion(descripcion, tipo, cuenta, categoria, importe)) {
           evento.target.reset();
         }
       });
 
     document.querySelectorAll("[data-formulario]").forEach(boton => {
       boton.addEventListener("click", () => {
-        const formulario = document.getElementById(
-          boton.dataset.formulario
-        );
-
+        const formulario = document.getElementById(boton.dataset.formulario);
         if (!formulario) return;
 
         formulario.classList.toggle("abierto");
@@ -765,28 +667,19 @@
 
         const origen = document.getElementById("trOrigen").value;
         const destino = document.getElementById("trDestino").value;
-        const importe = Number(
-          document.getElementById("trImporte").value
-        );
+        const importe = Number(document.getElementById("trImporte").value);
 
-        if (transferir(origen, destino, importe)) {
-          evento.target.reset();
-        }
+        if (transferir(origen, destino, importe)) evento.target.reset();
       });
 
     document.getElementById("formTarjeta")
       ?.addEventListener("submit", evento => {
         evento.preventDefault();
 
-        const alias =
-          document.getElementById("tarAlias").value.trim();
+        const alias = document.getElementById("tarAlias").value.trim();
+        const ultimos = document.getElementById("tarUltimos").value.trim();
 
-        const ultimos =
-          document.getElementById("tarUltimos").value.trim();
-
-        if (agregarTarjeta(alias, ultimos)) {
-          evento.target.reset();
-        }
+        if (agregarTarjeta(alias, ultimos)) evento.target.reset();
       });
 
     document.getElementById("filtroOrden")
@@ -798,16 +691,11 @@
     document.getElementById("exportar")
       ?.addEventListener("click", exportarCSV);
 
-    document.getElementById("exportarPresupuestos")
-      ?.addEventListener("click", exportarPresupuestosJSON);
-
     document.getElementById("borrarDatos")
       ?.addEventListener("click", () => {
-        const confirmar = window.confirm(
+        if (!window.confirm(
           "¿Borrar todos los datos financieros de demostración de este navegador?"
-        );
-
-        if (!confirmar) return;
+        )) return;
 
         const anterior = datos;
         datos = estadoInicial();
@@ -819,16 +707,40 @@
         }
 
         renderizar();
+
+        if (window.NovaFinanzasPresupuestos) {
+          try {
+            localStorage.removeItem("nova_finanzas_presupuestos_v1");
+            window.NovaFinanzasPresupuestos.renderizar();
+          } catch (error) {
+            console.error("No se pudieron borrar los presupuestos.");
+          }
+        }
+
         estadoMensaje("Datos de demostración borrados.");
       });
 
     renderizar();
+
+    if (window.NovaFinanzasPresupuestos &&
+        typeof window.NovaFinanzasPresupuestos.renderizar === "function") {
+      window.NovaFinanzasPresupuestos.renderizar();
+    }
   }
 
+  window.NovaFinanzas = Object.freeze({
+    version: "3.0.0",
+    obtenerDatos: () => JSON.parse(JSON.stringify(datos)),
+    agregarOperacion,
+    transferir,
+    agregarTarjeta,
+    renderizar,
+    formatearImporte: dinero,
+    categorias: { ...CATEGORIAS }
+  });
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", configurar, {
-      once: true
-    });
+    document.addEventListener("DOMContentLoaded", configurar, { once: true });
   } else {
     configurar();
   }

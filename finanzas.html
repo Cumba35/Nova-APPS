@@ -9,7 +9,6 @@
   <title>Nova Finanzas | Nova Apps</title>
   <link rel="stylesheet" href="css/finanzas.css">
 </head>
-
 <body>
   <main class="contenedor">
     <header>
@@ -21,9 +20,7 @@
 
     <section>
       <h1 class="titulo">Tu espacio financiero</h1>
-      <p class="suave">
-        Organiza tus cuentas, tarjetas, operaciones y presupuestos.
-      </p>
+      <p class="suave">Organiza tus cuentas, tarjetas, operaciones y presupuestos.</p>
     </section>
 
     <div class="aviso" role="note">
@@ -32,51 +29,30 @@
       pagos reales ni transferencias de dinero.
     </div>
 
-    <!-- RESUMEN DE SALDOS -->
     <section class="rejilla" aria-label="Resumen de saldos">
       <article class="panel">
         <span class="etiqueta">Saldo bancario de demostración</span>
         <strong class="saldo" id="saldoBancario">0,00 CUP</strong>
       </article>
-
       <article class="panel">
         <span class="etiqueta">Saldo en tarjetas de demostración</span>
         <strong class="saldo" id="saldoTarjetas">0,00 CUP</strong>
       </article>
     </section>
 
-    <!-- ACCIONES -->
     <nav class="acciones" aria-label="Acciones financieras">
-      <button class="boton primario" type="button"
-        data-formulario="operacionForm">
-        + Registrar operación
-      </button>
-
-      <button class="boton" type="button"
-        data-formulario="transferenciaForm">
-        ⇄ Transferir
-      </button>
-
-      <button class="boton" type="button"
-        data-formulario="tarjetaForm">
-        + Añadir tarjeta
-      </button>
-
-      <button class="boton" type="button"
-        data-formulario="presupuestoForm">
-        + Crear presupuesto
-      </button>
+      <button class="boton primario" type="button" data-formulario="operacionForm">+ Registrar operación</button>
+      <button class="boton" type="button" data-formulario="transferenciaForm">⇄ Transferir</button>
+      <button class="boton" type="button" data-formulario="tarjetaForm">+ Añadir tarjeta</button>
+      <button class="boton" type="button" data-formulario="presupuestoForm">+ Crear presupuesto</button>
     </nav>
 
-    <!-- REGISTRAR OPERACIÓN -->
     <section class="panel formulario" id="operacionForm">
       <h2 class="seccion-titulo">Registrar operación de prueba</h2>
-
       <form id="formOperacion">
         <div class="campo">
           <label for="opNombre">Descripción</label>
-          <input id="opNombre" maxlength="80" required
-            autocomplete="off" placeholder="Ej.: Compra de prueba">
+          <input id="opNombre" maxlength="80" required autocomplete="off" placeholder="Ej.: Compra de prueba">
         </div>
 
         <div class="campo">
@@ -96,26 +72,35 @@
         </div>
 
         <div class="campo">
-          <label for="opImporte">Importe en CUP</label>
-          <input id="opImporte" type="number" min="0.01"
-            max="1000000000" step="0.01" required>
+          <label for="opCategoria">Categoría de la operación</label>
+          <select id="opCategoria" required>
+            <option value="alimentacion">Alimentación</option>
+            <option value="transporte">Transporte</option>
+            <option value="hogar">Hogar</option>
+            <option value="servicios">Servicios</option>
+            <option value="salud">Salud</option>
+            <option value="educacion">Educación</option>
+            <option value="entretenimiento">Entretenimiento</option>
+            <option value="compras">Compras</option>
+            <option value="otros">Otros</option>
+          </select>
         </div>
 
-        <button class="boton primario" type="submit">
-          Guardar operación de prueba
-        </button>
+        <div class="campo">
+          <label for="opImporte">Importe en CUP</label>
+          <input id="opImporte" type="number" min="0.01" max="1000000000" step="0.01" required>
+        </div>
+
+        <button class="boton primario" type="submit">Guardar operación de prueba</button>
       </form>
     </section>
 
-    <!-- TRANSFERENCIAS SIMULADAS -->
     <section class="panel formulario" id="transferenciaForm">
       <h2 class="seccion-titulo">Transferencia de demostración</h2>
-
       <p class="suave">
         Simula movimientos entre los dos saldos locales.
         No se envía dinero a cuentas bancarias ni tarjetas cubanas.
       </p>
-
       <form id="formTransferencia">
         <div class="campo">
           <label for="trOrigen">Cuenta de origen</label>
@@ -124,7 +109,6 @@
             <option value="tarjeta">Saldo en tarjetas</option>
           </select>
         </div>
-
         <div class="campo">
           <label for="trDestino">Cuenta de destino</label>
           <select id="trDestino" required>
@@ -132,55 +116,36 @@
             <option value="bancario">Saldo bancario</option>
           </select>
         </div>
-
         <div class="campo">
           <label for="trImporte">Importe en CUP</label>
-          <input id="trImporte" type="number" min="0.01"
-            max="1000000000" step="0.01" required>
+          <input id="trImporte" type="number" min="0.01" max="1000000000" step="0.01" required>
         </div>
-
-        <button class="boton primario" type="submit">
-          Simular transferencia
-        </button>
+        <button class="boton primario" type="submit">Simular transferencia</button>
       </form>
     </section>
 
-    <!-- TARJETAS -->
     <section class="panel formulario" id="tarjetaForm">
       <h2 class="seccion-titulo">Tarjeta de demostración</h2>
-
       <p class="suave">
         Guarda un alias y, opcionalmente, los últimos cuatro dígitos.
         Nunca introduzcas el número completo, el PIN ni el código de seguridad.
       </p>
-
       <form id="formTarjeta">
         <div class="campo">
           <label for="tarAlias">Nombre o alias</label>
-          <input id="tarAlias" maxlength="40" required
-            autocomplete="off" placeholder="Mi tarjeta">
+          <input id="tarAlias" maxlength="40" required autocomplete="off" placeholder="Mi tarjeta">
         </div>
-
         <div class="campo">
           <label for="tarUltimos">Últimos cuatro dígitos (opcional)</label>
-          <input id="tarUltimos" inputmode="numeric"
-            pattern="[0-9]{4}" maxlength="4" placeholder="1234">
+          <input id="tarUltimos" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="1234">
         </div>
-
-        <button class="boton primario" type="submit">
-          Guardar tarjeta de prueba
-        </button>
+        <button class="boton primario" type="submit">Guardar tarjeta de prueba</button>
       </form>
-
-      <div id="listaTarjetas" class="vacio">
-        No hay tarjetas de demostración.
-      </div>
+      <div id="listaTarjetas" class="vacio">No hay tarjetas de demostración.</div>
     </section>
 
-    <!-- PRESUPUESTOS -->
     <section class="panel" id="presupuestos">
       <h2 class="seccion-titulo">Mis presupuestos</h2>
-
       <p class="suave">
         Establece límites de gasto por categoría y controla cuánto dinero
         has utilizado y cuánto te queda disponible.
@@ -191,12 +156,10 @@
           <span class="etiqueta">Límites establecidos</span>
           <strong class="saldo" id="presupuestoTotal">0,00 CUP</strong>
         </article>
-
         <article class="panel">
           <span class="etiqueta">Gasto contabilizado</span>
           <strong class="saldo" id="presupuestoGastado">0,00 CUP</strong>
         </article>
-
         <article class="panel">
           <span class="etiqueta">Disponible del presupuesto</span>
           <strong class="saldo" id="presupuestoDisponible">0,00 CUP</strong>
@@ -204,25 +167,17 @@
       </div>
 
       <div class="acciones">
-        <button class="boton primario" id="nuevoPresupuesto"
-          type="button">
-          + Nuevo presupuesto
-        </button>
+        <button class="boton primario" id="nuevoPresupuesto" type="button">+ Nuevo presupuesto</button>
       </div>
 
       <section class="formulario" id="presupuestoForm">
-        <h3 class="seccion-titulo" id="presupuestoTitulo">
-          Crear presupuesto
-        </h3>
-
+        <h3 class="seccion-titulo" id="presupuestoTitulo">Crear presupuesto</h3>
         <form id="formPresupuesto">
           <input type="hidden" id="presupuestoId">
 
           <div class="campo">
             <label for="presupuestoNombre">Nombre del presupuesto</label>
-            <input id="presupuestoNombre" type="text"
-              maxlength="60" required
-              placeholder="Ej.: Gastos del hogar">
+            <input id="presupuestoNombre" type="text" maxlength="60" required placeholder="Ej.: Gastos del hogar">
           </div>
 
           <div class="campo">
@@ -243,9 +198,7 @@
 
           <div class="campo">
             <label for="presupuestoLimite">Límite de gasto (CUP)</label>
-            <input id="presupuestoLimite" type="number"
-              min="0.01" max="1000000000" step="0.01"
-              required placeholder="Ej.: 5000">
+            <input id="presupuestoLimite" type="number" min="0.01" max="1000000000" step="0.01" required placeholder="Ej.: 5000">
           </div>
 
           <div class="campo">
@@ -268,15 +221,8 @@
           </div>
 
           <div class="acciones">
-            <button class="boton primario" type="submit"
-              id="guardarPresupuesto">
-              Guardar presupuesto
-            </button>
-
-            <button class="boton" type="button"
-              id="cancelarPresupuesto">
-              Cancelar
-            </button>
+            <button class="boton primario" type="submit" id="guardarPresupuesto">Guardar presupuesto</button>
+            <button class="boton" type="button" id="cancelarPresupuesto">Cancelar</button>
           </div>
         </form>
       </section>
@@ -284,14 +230,11 @@
       <div id="listaPresupuestos" aria-live="polite">
         <div class="vacio">Todavía no hay presupuestos creados.</div>
       </div>
-
       <p id="estadoPresupuestos" class="estado" aria-live="polite"></p>
     </section>
 
-    <!-- OPERACIONES RECIENTES -->
     <section class="panel" id="operaciones">
       <h2 class="seccion-titulo">Operaciones recientes</h2>
-
       <div class="filtros">
         <div class="campo">
           <label for="filtroOrden">Ordenar por</label>
@@ -301,7 +244,6 @@
             <option value="importeAsc">Importe: menor a mayor</option>
           </select>
         </div>
-
         <div class="campo">
           <label for="filtroCuenta">Cuenta</label>
           <select id="filtroCuenta">
@@ -315,24 +257,15 @@
       <div id="listaOperaciones" aria-live="polite">
         <div class="vacio">Todavía no hay operaciones.</div>
       </div>
-
       <p id="estado" class="estado" aria-live="polite"></p>
 
-      <button class="boton" id="exportar" type="button">
-        Exportar operaciones CSV
-      </button>
-
-      <button class="boton" id="borrarDatos" type="button">
-        Borrar datos de demostración
-      </button>
+      <button class="boton" id="exportar" type="button">Exportar operaciones CSV</button>
+      <button class="boton" id="borrarDatos" type="button">Borrar datos de demostración</button>
     </section>
 
-    <footer class="pie">
-      Nova Finanzas · Prototipo local · No es un servicio bancario.
-    </footer>
+    <footer class="pie">Nova Finanzas · Prototipo local · No es un servicio bancario.</footer>
   </main>
 
-  <!-- MÓDULOS FINANCIEROS -->
   <script src="js/finanzas/operaciones.js" defer></script>
   <script src="js/finanzas/tarjetas.js" defer></script>
   <script src="js/finanzas/reportes.js" defer></script>

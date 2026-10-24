@@ -2,15 +2,25 @@
 /*
  * NOVA APPS — GESTIÓN DE TARJETAS
  * Archivo: js/finanzas/tarjetas.js
- *
- * Utilidades para tarjetas de demostración.
- * No conecta con bancos ni procesa pagos reales.
+ * Tarjetas de demostración; no conecta con bancos ni procesa pagos.
  */
 
 "use strict";
 
 (function () {
   const MAX_TARJETAS = 200;
+
+  function crearId() {
+    if (
+      window.crypto &&
+      typeof window.crypto.randomUUID === "function"
+    ) {
+      return window.crypto.randomUUID();
+    }
+
+    return Date.now().toString(36) +
+      Math.random().toString(36).slice(2);
+  }
 
   function validarAlias(alias) {
     return typeof alias === "string" &&
@@ -19,10 +29,7 @@
   }
 
   function validarUltimosDigitos(ultimos) {
-    if (ultimos === "" || ultimos == null) {
-      return true;
-    }
-
+    if (ultimos === "" || ultimos == null) return true;
     return /^[0-9]{4}$/.test(String(ultimos));
   }
 
@@ -45,7 +52,7 @@
     if (!validarUltimosDigitos(digitos)) {
       return {
         correcta: false,
-        error: "Solo puedes indicar los últimos cuatro dígitos."
+        error: "Indica solamente los últimos cuatro dígitos."
       };
     }
 
@@ -54,21 +61,10 @@
       tarjeta: {
         id: crearId(),
         alias: nombre,
-        ultimos: digitos
+        ultimos: digitos,
+        creadaEn: new Date().toISOString()
       }
     };
-  }
-
-  function crearId() {
-    if (
-      window.crypto &&
-      typeof window.crypto.randomUUID === "function"
-    ) {
-      return window.crypto.randomUUID();
-    }
-
-    return Date.now().toString(36) +
-      Math.random().toString(36).slice(2);
   }
 
   function validarLista(tarjetas) {
@@ -120,10 +116,10 @@
     }
 
     const alias = tarjeta.alias.trim();
+    const ultimos = String(tarjeta.ultimos || "");
 
-    if (validarUltimosDigitos(tarjeta.ultimos || "") &&
-        tarjeta.ultimos) {
-      return alias + " · **** " + tarjeta.ultimos;
+    if (validarUltimosDigitos(ultimos) && ultimos) {
+      return alias + " · **** " + ultimos;
     }
 
     return alias;
@@ -170,6 +166,29 @@
     return true;
   }
 
+  function eliminarTarjeta(tarjetas, id) {
+    if (!Array.isArray(tarjetas) || typeof id !== "string") {
+      return {
+        correcta: false,
+        error: "No se pudo identificar la tarjeta."
+      };
+    }
+
+    const existe = tarjetas.some(tarjeta => tarjeta.id === id);
+
+    if (!existe) {
+      return {
+        correcta: false,
+        error: "La tarjeta no existe."
+      };
+    }
+
+    return {
+      correcta: true,
+      tarjetas: tarjetas.filter(tarjeta => tarjeta.id !== id)
+    };
+  }
+
   window.NovaFinanzasTarjetas = Object.freeze({
     validarAlias,
     validarUltimosDigitos,
@@ -177,6 +196,7 @@
     validarLista,
     formatearTarjeta,
     renderizarLista,
+    eliminarTarjeta,
     maximoTarjetas: MAX_TARJETAS
   });
 })();

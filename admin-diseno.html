@@ -2,105 +2,98 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101426">
-<title>Diseño · Nova Apps</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;padding:14px;background:#101426;color:#f4f6ff;font-family:system-ui,sans-serif}
-main{max-width:850px;margin:auto}
-section{background:#1b2239;padding:16px;border-radius:12px;margin:14px 0}
-input,textarea,select,button{width:100%;padding:11px;margin:6px 0;border-radius:8px;font:inherit}
-input,textarea,select{background:#101426;color:white;border:1px solid #414b6b}
-input[type=color],input[type=checkbox]{width:auto}
-button{border:0;background:#7779ff;color:white;font-weight:700}
-button.secondary{background:#35405e}
-label{display:block;margin-top:10px}
-.hidden{display:none!important}
-.muted,small{color:#bdc7e3}
-#message{white-space:pre-wrap;overflow-wrap:anywhere}
-.nav{display:flex;flex-wrap:wrap;gap:8px}
-.nav a{padding:8px;background:#283250;border-radius:8px;color:white;text-decoration:none}
-.inline{display:flex;gap:10px;flex-wrap:wrap}
-.inline>*{flex:1;min-width:130px}
-.section-row{border:1px solid #414b6b;border-radius:10px;padding:10px;margin:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.section-name{flex:1;min-width:110px;font-weight:700}
-.section-row button{width:48px}
-.preview{background:#f5f7fb;color:#20243a;border-radius:12px;padding:14px;overflow-wrap:anywhere}
-.preview-card{background:white;color:#20243a;border-radius:var(--card-radius,14px);padding:14px;margin:10px 0}
-.preview button{background:var(--accent,#5b5ce2)}
-a{color:#a5b4fc}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <meta name="description" content="Editor visual de Nova Apps.">
+  <title>Diseño · Nova Apps</title>
+  <link rel="stylesheet" href="./css/admin-diseno.css">
 </head>
 <body>
 <main>
-<h1>Editor visual</h1>
-<p class="muted">Configura el contenido y apariencia de la página principal.</p>
-<p id="message" role="status">Preparando conexión...</p>
+  <h1>Editor visual</h1>
+  <p class="muted">Configura el contenido y la apariencia de la página principal.</p>
+  <p id="message" role="status" aria-live="polite">Preparando conexión...</p>
 
-<section id="login" class="hidden">
-<h2>Iniciar sesión</h2>
-<button id="loginBtn">Iniciar sesión con Google</button>
-</section>
+  <section id="login" class="hidden">
+    <h2>Iniciar sesión</h2>
+    <button id="loginBtn" type="button">Iniciar sesión con Google</button>
+  </section>
 
-<section id="panel" class="hidden">
-<p id="account" class="muted"></p>
-<nav class="nav">
-<a href="./admin.html">Menú principal</a>
-<a href="./admin-apps.html">Aplicaciones</a>
-<a href="./admin-rangos.html">Rangos</a>
-<a href="./admin-config.html">Configuración</a>
-</nav>
-<button id="logoutBtn" class="secondary">Cerrar sesión</button>
-</section>
+  <section id="panel" class="hidden">
+    <p id="account" class="muted"></p>
+    <nav class="nav" aria-label="Administración">
+      <a href="./admin.html">Menú principal</a>
+      <a href="./admin-apps.html">Aplicaciones</a>
+      <a href="./admin-rangos.html">Rangos</a>
+      <a href="./admin-config.html">Configuración</a>
+      <a href="./inspectores.html">Inspectores</a>
+    </nav>
+    <button id="logoutBtn" type="button" class="secondary">Cerrar sesión</button>
+  </section>
 
-<div id="content" class="hidden">
-<section>
-<h2>Contenido principal</h2>
-<label for="siteTitle">Título principal</label>
-<input id="siteTitle" maxlength="100">
-<label for="siteSubtitle">Texto debajo del título</label>
-<textarea id="siteSubtitle" rows="2" maxlength="300"></textarea>
-<label for="intro">Presentación</label>
-<textarea id="intro" rows="3" maxlength="1000"></textarea>
+  <div id="content" class="hidden">
+    <section>
+      <h2>Contenido principal</h2>
 
-<div class="inline">
-<div><label for="bgColor">Fondo</label><input id="bgColor" type="color"></div>
-<div><label for="textColor">Texto</label><input id="textColor" type="color"></div>
-<div><label for="accentColor">Botones</label><input id="accentColor" type="color"></div>
-</div>
+      <label for="siteTitle">Título principal</label>
+      <input id="siteTitle" maxlength="100">
 
-<label for="buttonText">Texto del botón principal</label>
-<input id="buttonText" maxlength="60">
+      <label for="siteSubtitle">Texto debajo del título</label>
+      <textarea id="siteSubtitle" rows="2" maxlength="300"></textarea>
 
-<label for="cardSize">Tamaño de tarjetas</label>
-<select id="cardSize">
-<option value="compact">Compactas</option>
-<option value="normal">Normales</option>
-<option value="large">Grandes</option>
-</select>
+      <label for="intro">Presentación</label>
+      <textarea id="intro" rows="3" maxlength="1000"></textarea>
 
-<h3>Secciones de la página</h3>
-<p class="muted">Activa o desactiva cada sección y cambia su orden.</p>
-<div id="sectionControls"></div>
+      <div class="inline">
+        <div>
+          <label for="bgColor">Fondo</label>
+          <input id="bgColor" type="color">
+        </div>
+        <div>
+          <label for="textColor">Texto</label>
+          <input id="textColor" type="color">
+        </div>
+        <div>
+          <label for="accentColor">Botones</label>
+          <input id="accentColor" type="color">
+        </div>
+      </div>
 
-<div class="inline">
-<button id="previewBtn" type="button" class="secondary">Actualizar vista previa</button>
-<button id="resetBtn" type="button" class="secondary">Restablecer editor</button>
-</div>
-<div class="inline">
-<button id="draftBtn" type="button">Guardar borrador</button>
-<button id="publishBtn" type="button">Publicar cambios</button>
-</div>
-<p class="muted">La página pública debe leer la configuración publicada para mostrar estos cambios.</p>
-</section>
+      <label for="buttonText">Texto del botón principal</label>
+      <input id="buttonText" maxlength="60">
 
-<section>
-<h2>Vista previa</h2>
-<div id="preview" class="preview"></div>
-</section>
-</div>
+      <label for="cardSize">Tamaño de tarjetas</label>
+      <select id="cardSize">
+        <option value="compact">Compactas</option>
+        <option value="normal">Normales</option>
+        <option value="large">Grandes</option>
+      </select>
+
+      <h3>Secciones de la página</h3>
+      <p class="muted">Activa o desactiva cada sección y cambia su orden.</p>
+      <div id="sectionControls"></div>
+
+      <div class="inline">
+        <button id="previewBtn" type="button" class="secondary">Actualizar vista previa</button>
+        <button id="resetBtn" type="button" class="secondary">Restablecer editor</button>
+      </div>
+
+      <div class="inline">
+        <button id="draftBtn" type="button">Guardar borrador</button>
+        <button id="publishBtn" type="button">Publicar cambios</button>
+      </div>
+
+      <p class="muted">
+        La página pública debe leer la configuración publicada para mostrar estos cambios.
+      </p>
+    </section>
+
+    <section>
+      <h2>Vista previa</h2>
+      <div id="preview" class="preview"></div>
+    </section>
+  </div>
 </main>
 
 <script type="module">
@@ -118,9 +111,9 @@ const defaults = {
   buttonText: 'Explorar aplicaciones',
   cardSize: 'normal',
   sections: [
-    {id:'intro', name:'Presentación', visible:true},
-    {id:'catalog', name:'Catálogo de aplicaciones', visible:true},
-    {id:'contact', name:'Contacto', visible:true}
+    { id: 'intro', name: 'Presentación', visible: true },
+    { id: 'catalog', name: 'Catálogo de aplicaciones', visible: true },
+    { id: 'contact', name: 'Contacto', visible: true }
   ]
 };
 
@@ -128,9 +121,12 @@ let config = structuredClone(defaults);
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;',
-    '"':'&quot;', "'":'&#39;'
-  }[c]));
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[c]);
 }
 
 function readEditor() {
@@ -147,7 +143,7 @@ function readEditor() {
     sections: [...$('#sectionControls').querySelectorAll('.section-row')].map(row => ({
       id: row.dataset.id,
       name: row.querySelector('.section-name').textContent,
-      visible: row.querySelector('input[type=checkbox]').checked
+      visible: row.querySelector('input[type="checkbox"]').checked
     }))
   };
 }
@@ -177,12 +173,14 @@ function renderSections() {
     up.type = 'button';
     up.className = 'secondary';
     up.textContent = '↑';
+    up.setAttribute('aria-label', 'Mover ' + section.name + ' hacia arriba');
     up.disabled = index === 0;
 
     const down = document.createElement('button');
     down.type = 'button';
     down.className = 'secondary';
     down.textContent = '↓';
+    down.setAttribute('aria-label', 'Mover ' + section.name + ' hacia abajo');
     down.disabled = index === config.sections.length - 1;
 
     up.onclick = () => {
@@ -214,7 +212,9 @@ function renderPreview() {
   preview.style.color = config.textColor;
   preview.style.setProperty('--accent', config.accentColor);
   preview.style.setProperty('--card-radius', ({
-    compact:'7px', normal:'14px', large:'24px'
+    compact: '7px',
+    normal: '14px',
+    large: '24px'
   })[config.cardSize] || '14px');
 
   const html = [];
@@ -252,12 +252,13 @@ function fillEditor() {
   $('#accentColor').value = config.accentColor;
   $('#buttonText').value = config.buttonText;
   $('#cardSize').value = config.cardSize;
+
   renderSections();
   renderPreview();
 }
 
 async function loadConfig() {
-  const {data, error} = await supabase
+  const { data, error } = await supabase
     .from('site_config_draft')
     .select('config')
     .eq('id', 1)
@@ -270,7 +271,8 @@ async function loadConfig() {
   }
 
   if (data?.config) {
-    config = {...structuredClone(defaults), ...data.config};
+    config = { ...structuredClone(defaults), ...data.config };
+
     if (!Array.isArray(config.sections)) {
       config.sections = structuredClone(defaults.sections);
     }
@@ -282,11 +284,11 @@ async function loadConfig() {
 async function saveConfig(table) {
   readEditor();
 
-  const {error} = await supabase.from(table).upsert({
+  const { error } = await supabase.from(table).upsert({
     id: 1,
     config,
     updated_at: new Date().toISOString()
-  }, {onConflict:'id'});
+  }, { onConflict: 'id' });
 
   if (error) {
     say('No se pudo guardar: ' + error.message);
@@ -325,14 +327,21 @@ $('#publishBtn').onclick = async () => {
 $('#sectionControls').addEventListener('change', renderPreview);
 
 [
-  'siteTitle','siteSubtitle','intro','bgColor',
-  'textColor','accentColor','buttonText','cardSize'
+  'siteTitle',
+  'siteSubtitle',
+  'intro',
+  'bgColor',
+  'textColor',
+  'accentColor',
+  'buttonText',
+  'cardSize'
 ].forEach(id => {
   $('#' + id).addEventListener('input', renderPreview);
   $('#' + id).addEventListener('change', renderPreview);
 });
 
 const ok = await guardPage();
+
 if (ok) {
   $('#content').classList.remove('hidden');
   await loadConfig();

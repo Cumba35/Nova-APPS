@@ -2,65 +2,54 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101426">
-<title>Configuración · Nova Apps</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;padding:14px;background:#101426;color:#f4f6ff;font-family:system-ui,sans-serif}
-main{max-width:850px;margin:auto}
-section,.result{background:#1b2239;padding:16px;border-radius:12px;margin:14px 0}
-button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:8px;background:#7779ff;color:white;font:inherit;font-weight:700}
-button.secondary{background:#35405e}
-.hidden{display:none!important}
-.muted,small{color:#bdc7e3}
-#message{white-space:pre-wrap;overflow-wrap:anywhere}
-.nav{display:flex;flex-wrap:wrap;gap:8px}
-.nav a{padding:8px;background:#283250;border-radius:8px;color:white;text-decoration:none}
-.result{overflow-wrap:anywhere}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <meta name="description" content="Configuración y estado de Nova Apps.">
+  <title>Configuración · Nova Apps</title>
+  <link rel="stylesheet" href="./css/admin-config.css">
 </head>
 <body>
 <main>
-<h1>Configuración y estado</h1>
-<p class="muted">Comprueba la conexión y los permisos de las tablas de Nova Apps.</p>
-<p id="message" role="status">Preparando conexión...</p>
+  <h1>Configuración y estado</h1>
+  <p class="muted">Comprueba la conexión y los permisos de las tablas de Nova Apps.</p>
+  <p id="message" role="status" aria-live="polite">Preparando conexión...</p>
 
-<section id="login" class="hidden">
-<h2>Iniciar sesión</h2>
-<button id="loginBtn">Iniciar sesión con Google</button>
-</section>
+  <section id="login" class="hidden">
+    <h2>Iniciar sesión</h2>
+    <button id="loginBtn" type="button">Iniciar sesión con Google</button>
+  </section>
 
-<section id="panel" class="hidden">
-<p id="account" class="muted"></p>
-<nav class="nav">
-<a href="./admin.html">Menú principal</a>
-<a href="./admin-apps.html">Aplicaciones</a>
-<a href="./admin-diseno.html">Diseño</a>
-<a href="./admin-rangos.html">Rangos</a>
-</nav>
-<button id="logoutBtn" class="secondary">Cerrar sesión</button>
-</section>
+  <section id="panel" class="hidden">
+    <p id="account" class="muted"></p>
+    <nav class="nav" aria-label="Administración">
+      <a href="./admin.html">Menú principal</a>
+      <a href="./admin-apps.html">Aplicaciones</a>
+      <a href="./admin-diseno.html">Diseño</a>
+      <a href="./admin-rangos.html">Rangos</a>
+      <a href="./inspectores.html">Inspectores</a>
+    </nav>
+    <button id="logoutBtn" class="secondary" type="button">Cerrar sesión</button>
+  </section>
 
-<div id="content" class="hidden">
-<section>
-<h2>Comprobación de tablas</h2>
-<p>La prueba intenta leer un registro de cada tabla. No modifica datos ni crea tablas o políticas.</p>
-<button id="checkBtn">Comprobar conexión</button>
-<div id="checkResults"></div>
-</section>
+  <div id="content" class="hidden">
+    <section>
+      <h2>Comprobación de tablas</h2>
+      <p>La prueba intenta leer un registro de cada tabla. No modifica datos ni crea tablas o políticas.</p>
+      <button id="checkBtn" type="button">Comprobar conexión</button>
+      <div id="checkResults" aria-live="polite"></div>
+    </section>
 
-<section>
-<h2>Seguridad</h2>
-<ul>
-<li>No publiques claves secretas ni claves <code>service_role</code> en el navegador.</li>
-<li>Las políticas RLS deben proteger las operaciones de lectura, inserción, actualización y eliminación.</li>
-<li>La restricción del propietario en la interfaz no sustituye las políticas de la base de datos.</li>
-<li>La página pública solo mostrará la configuración publicada si <code>index.html</code> la lee y aplica.</li>
-</ul>
-</section>
-</div>
+    <section>
+      <h2>Seguridad</h2>
+      <ul>
+        <li>No publiques claves secretas ni claves <code>service_role</code> en el navegador.</li>
+        <li>Las políticas RLS deben proteger las operaciones de lectura, inserción, actualización y eliminación.</li>
+        <li>La restricción del propietario en la interfaz no sustituye las políticas de la base de datos.</li>
+        <li>La página pública solo mostrará la configuración publicada si <code>index.html</code> la lee y aplica.</li>
+      </ul>
+    </section>
+  </div>
 </main>
 
 <script type="module">
@@ -71,41 +60,60 @@ import {
 setupAuth();
 
 const tables = [
-  {label:'Catálogo de aplicaciones', table:'apps', column:'id'},
-  {label:'Perfiles y rangos', table:'nova_user_profiles', column:'user_id'},
-  {label:'Borrador de la página', table:'site_config_draft', column:'id'},
-  {label:'Configuración publicada', table:'site_config_published', column:'id'}
+  { label: 'Catálogo de aplicaciones', table: 'apps', column: 'id' },
+  { label: 'Perfiles y rangos', table: 'nova_user_profiles', column: 'user_id' },
+  { label: 'Borrador de la página', table: 'site_config_draft', column: 'id' },
+  { label: 'Configuración publicada', table: 'site_config_published', column: 'id' }
 ];
 
+let checking = false;
+
 async function checkStatus() {
+  if (checking) return;
+  checking = true;
+
+  const button = $('#checkBtn');
   const box = $('#checkResults');
+
+  button.disabled = true;
   box.replaceChildren();
   say('Comprobando acceso a las tablas...');
 
-  for (const item of tables) {
-    const row = document.createElement('div');
-    row.className = 'result';
-    row.textContent = item.label + ': comprobando...';
-    box.append(row);
+  try {
+    for (const item of tables) {
+      const row = document.createElement('div');
+      row.className = 'result';
+      row.textContent = item.label + ': comprobando...';
+      box.append(row);
 
-    const {error} = await supabase
-      .from(item.table)
-      .select(item.column)
-      .limit(1);
+      try {
+        const { error } = await supabase
+          .from(item.table)
+          .select(item.column)
+          .limit(1);
 
-    row.textContent = item.label + ': ' +
-      (error
-        ? 'No disponible — ' + error.message
-        : 'consulta permitida');
+        row.textContent = item.label + ': ' +
+          (error
+            ? 'No disponible — ' + error.message
+            : 'consulta permitida');
+      } catch (error) {
+        row.textContent = item.label + ': error — ' +
+          (error?.message || String(error));
+      }
+    }
+
+    say('Comprobación terminada. Una consulta correcta confirma la lectura, no todos los permisos de escritura.');
+  } finally {
+    checking = false;
+    button.disabled = false;
   }
-
-  say('Comprobación terminada. Un resultado correcto confirma la lectura, no todas las operaciones de escritura.');
 }
 
-$('#checkBtn').onclick = checkStatus;
+$('#checkBtn').addEventListener('click', checkStatus);
 
-const ok = await guardPage();
-if (ok) {
+const authorized = await guardPage();
+
+if (authorized) {
   $('#content').classList.remove('hidden');
   await checkStatus();
 }

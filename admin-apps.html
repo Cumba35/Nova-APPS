@@ -2,86 +2,103 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101426">
-<title>Aplicaciones · Nova Apps</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;padding:14px;background:#101426;color:#f4f6ff;font-family:system-ui,sans-serif}
-main{max-width:850px;margin:auto}
-section,.app{background:#1b2239;padding:16px;border-radius:12px;margin:14px 0}
-input,textarea,select,button{width:100%;padding:11px;margin:6px 0;border-radius:8px;font:inherit}
-input,textarea,select{background:#101426;color:white;border:1px solid #414b6b}
-input[type=checkbox]{width:auto}
-button{border:0;background:#7779ff;color:white;font-weight:700}
-button.secondary{background:#35405e}
-button.delete{background:#a7374d}
-label{display:block;margin-top:10px}
-.hidden{display:none!important}
-.muted,small{color:#bdc7e3}
-#message{white-space:pre-wrap;overflow-wrap:anywhere}
-a{color:#a5b4fc}
-.nav{display:flex;flex-wrap:wrap;gap:8px}
-.nav a{padding:8px;background:#283250;border-radius:8px;color:white;text-decoration:none}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <meta name="description" content="Administración del catálogo de aplicaciones de Nova Apps.">
+  <title>Aplicaciones · Nova Apps</title>
+
+  <link rel="stylesheet" href="css/admin-apps.css">
 </head>
+
 <body>
 <main>
-<h1>Gestión de aplicaciones</h1>
-<p class="muted">Añade, edita, publica o elimina aplicaciones del catálogo.</p>
-<p id="message" role="status">Preparando conexión...</p>
+  <h1>Gestión de aplicaciones</h1>
+  <p class="muted">
+    Añade, edita, publica o elimina aplicaciones del catálogo.
+  </p>
 
-<section id="login" class="hidden">
-<h2>Iniciar sesión</h2>
-<button id="loginBtn">Iniciar sesión con Google</button>
-</section>
+  <p id="message" role="status" aria-live="polite">
+    Preparando conexión...
+  </p>
 
-<section id="panel" class="hidden">
-<p id="account" class="muted"></p>
-<nav class="nav">
-<a href="./admin.html">Menú principal</a>
-<a href="./admin-diseno.html">Diseño</a>
-<a href="./admin-rangos.html">Rangos</a>
-<a href="./admin-config.html">Configuración</a>
-</nav>
-<button id="logoutBtn" class="secondary">Cerrar sesión</button>
-</section>
+  <section id="login" class="hidden">
+    <h2>Iniciar sesión</h2>
+    <p>Accede con la cuenta de Google autorizada.</p>
+    <button id="loginBtn" type="button">Iniciar sesión con Google</button>
+  </section>
 
-<div id="content" class="hidden">
-<section>
-<h2 id="formTitle">Añadir aplicación</h2>
-<form id="appForm">
-<input id="appId" type="hidden">
-<label for="name">Nombre</label>
-<input id="name" required maxlength="100">
-<label for="description">Descripción</label>
-<textarea id="description" rows="3"></textarea>
-<label for="url">URL de la aplicación</label>
-<input id="url" type="url" placeholder="https://...">
-<label for="status">Estado</label>
-<select id="status">
-<option>En desarrollo</option>
-<option>Disponible</option>
-<option>En mantenimiento</option>
-</select>
-<label><input id="published" type="checkbox"> Publicada y visible</label>
-<button type="submit">Guardar aplicación</button>
-<button type="button" id="cancelBtn" class="secondary">Cancelar edición</button>
-</form>
-</section>
+  <section id="panel" class="hidden">
+    <p id="account" class="muted"></p>
 
-<section>
-<h2>Catálogo</h2>
-<button id="refreshBtn" class="secondary">Actualizar lista</button>
-<div id="apps"></div>
-</section>
-</div>
+    <nav class="nav" aria-label="Administración">
+      <a href="./admin.html">Menú principal</a>
+      <a href="./admin-diseno.html">Diseño</a>
+      <a href="./admin-rangos.html">Rangos</a>
+      <a href="./admin-config.html">Configuración</a>
+      <a href="./inspectores.html">Inspectores</a>
+    </nav>
+
+    <button id="logoutBtn" class="secondary" type="button">
+      Cerrar sesión
+    </button>
+  </section>
+
+  <div id="content" class="hidden">
+    <section>
+      <h2 id="formTitle">Añadir aplicación</h2>
+
+      <form id="appForm">
+        <input id="appId" type="hidden">
+
+        <label for="name">Nombre</label>
+        <input id="name" required maxlength="100">
+
+        <label for="description">Descripción</label>
+        <textarea id="description" rows="3" maxlength="2000"></textarea>
+
+        <label for="url">URL de la aplicación</label>
+        <input id="url" type="url" placeholder="https://...">
+
+        <label for="status">Estado</label>
+        <select id="status">
+          <option>En desarrollo</option>
+          <option>Disponible</option>
+          <option>En mantenimiento</option>
+        </select>
+
+        <label>
+          <input id="published" type="checkbox">
+          Publicada y visible
+        </label>
+
+        <button type="submit">Guardar aplicación</button>
+        <button type="button" id="cancelBtn" class="secondary">
+          Cancelar edición
+        </button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Catálogo</h2>
+      <button id="refreshBtn" class="secondary" type="button">
+        Actualizar lista
+      </button>
+      <div id="apps"></div>
+    </section>
+  </div>
+
+  <p><a href="./">Volver a Nova Apps</a></p>
 </main>
 
 <script type="module">
 import {
-  $, supabase, guardPage, setupAuth, say, safeUrl
+  $,
+  supabase,
+  guardPage,
+  setupAuth,
+  say,
+  safeUrl
 } from './admin-core.js';
 
 setupAuth();
@@ -89,6 +106,8 @@ setupAuth();
 async function loadApps() {
   const box = $('#apps');
   box.replaceChildren();
+
+  say('Cargando aplicaciones...');
 
   const { data, error } = await supabase
     .from('apps')
@@ -102,6 +121,7 @@ async function loadApps() {
 
   if (!data?.length) {
     box.textContent = 'Todavía no hay aplicaciones.';
+    say('Catálogo cargado.');
     return;
   }
 
@@ -110,67 +130,78 @@ async function loadApps() {
     card.className = 'app';
 
     const title = document.createElement('h3');
-    title.textContent = app.name;
+    title.textContent = app.name || 'Aplicación sin nombre';
 
     const desc = document.createElement('p');
-    desc.textContent = app.description || '';
+    desc.textContent = app.description || 'Sin descripción.';
 
     const state = document.createElement('p');
     state.textContent =
-      'Estado: ' + app.status + ' · ' +
-      (app.published ? 'Publicada' : 'Oculta');
+      'Estado: ' + (app.status || 'Sin especificar') +
+      ' · ' + (app.published ? 'Publicada' : 'Oculta');
 
     card.append(title, desc, state);
 
     if (app.url) {
-      const link = document.createElement('a');
       const url = safeUrl(app.url);
-      link.href = url || '#';
-      link.textContent = 'Abrir aplicación';
 
       if (url) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.textContent = 'Abrir aplicación';
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
+        card.append(link);
       }
-
-      card.append(link);
     }
 
     const edit = document.createElement('button');
+    edit.type = 'button';
     edit.textContent = 'Editar';
-    edit.onclick = () => {
-      $('#appId').value = app.id;
+
+    edit.addEventListener('click', () => {
+      $('#appId').value = app.id ?? '';
       $('#name').value = app.name || '';
       $('#description').value = app.description || '';
       $('#url').value = app.url || '';
       $('#status').value = app.status || 'En desarrollo';
-      $('#published').checked = !!app.published;
+      $('#published').checked = Boolean(app.published);
       $('#formTitle').textContent = 'Editar aplicación';
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    });
 
     const del = document.createElement('button');
+    del.type = 'button';
     del.textContent = 'Eliminar';
     del.className = 'delete';
-    del.onclick = async () => {
-      if (!confirm('¿Eliminar "' + app.name + '"?')) return;
 
-      const { error } = await supabase
+    del.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar "' + (app.name || 'esta aplicación') + '"?')) {
+        return;
+      }
+
+      say('Eliminando aplicación...');
+
+      const { error: deleteError } = await supabase
         .from('apps')
         .delete()
         .eq('id', app.id);
 
-      if (error) {
-        say('Error al eliminar: ' + error.message);
-      } else {
-        say('Aplicación eliminada.');
-        await loadApps();
+      if (deleteError) {
+        say('Error al eliminar: ' + deleteError.message);
+        return;
       }
-    };
+
+      say('Aplicación eliminada.');
+      await loadApps();
+    });
 
     card.append(edit, del);
     box.append(card);
   }
+
+  say('Catálogo cargado. Aplicaciones encontradas: ' + data.length);
 }
 
 function resetForm() {
@@ -200,31 +231,41 @@ $('#appForm').addEventListener('submit', async event => {
     return;
   }
 
+  const saveButton = $('#appForm').querySelector('button[type="submit"]');
+  saveButton.disabled = true;
   say('Guardando aplicación...');
 
-  const result = id
-    ? await supabase.from('apps').update({
-        name, description, url, status, published
-      }).eq('id', id)
-    : await supabase.from('apps').insert({
-        name, description, url, status, published
-      });
+  try {
+    const result = id
+      ? await supabase
+          .from('apps')
+          .update({ name, description, url, status, published })
+          .eq('id', id)
+      : await supabase
+          .from('apps')
+          .insert({ name, description, url, status, published });
 
-  if (result.error) {
-    say('No se pudo guardar: ' + result.error.message);
-    return;
+    if (result.error) {
+      say('No se pudo guardar: ' + result.error.message);
+      return;
+    }
+
+    resetForm();
+    say('Aplicación guardada.');
+    await loadApps();
+  } catch (error) {
+    say('Error inesperado: ' + (error?.message || String(error)));
+  } finally {
+    saveButton.disabled = false;
   }
-
-  resetForm();
-  say('Aplicación guardada.');
-  await loadApps();
 });
 
-$('#cancelBtn').onclick = resetForm;
-$('#refreshBtn').onclick = loadApps;
+$('#cancelBtn').addEventListener('click', resetForm);
+$('#refreshBtn').addEventListener('click', loadApps);
 
-const ok = await guardPage();
-if (ok) {
+const autorizado = await guardPage();
+
+if (autorizado) {
   $('#content').classList.remove('hidden');
   await loadApps();
 }

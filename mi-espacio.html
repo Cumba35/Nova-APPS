@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10182a">
-  <meta name="description" content="Espacio privado de Nova Apps con recordatorios y bóveda cifrada.">
+  <meta name="description" content="Espacio privado de Nova Apps con recordatorios locales y bóveda cifrada.">
   <title>Mi espacio privado — Nova Apps</title>
   <link rel="stylesheet" href="./css/mi-espacio.css">
 </head>
@@ -27,6 +27,8 @@
   </p>
 
   <div class="grid">
+
+    <!-- RECORDATORIOS -->
     <section class="card">
       <h2>Recordatorios</h2>
 
@@ -57,32 +59,39 @@
 
       <label class="field">
         Importar archivo .nova.ev
-        <input id="importEvents" type="file" accept=".nova.ev,.json,application/json">
+        <input id="importEvents" type="file"
+          accept=".nova.ev,.json,application/json">
       </label>
 
       <div id="remStatus" class="status" aria-live="polite"></div>
       <div id="remList"></div>
     </section>
 
+    <!-- BÓVEDA -->
     <section class="card">
       <h2>Bóveda de contraseñas</h2>
 
       <p class="muted">
-        La bóveda utiliza cifrado AES-GCM de 256 bits con una clave
-        derivada mediante PBKDF2. Las credenciales no se envían a Nova
-        ni a la IA desde esta página.
+        La bóveda utiliza AES-GCM de 256 bits y PBKDF2 para derivar
+        la clave de cifrado. Las credenciales se almacenan cifradas
+        en el dispositivo y no se envían a Nova ni a la IA desde esta página.
       </p>
 
       <div id="vaultSetup">
         <label>
           Contraseña maestra
           <input id="master" class="field" type="password"
-            autocomplete="new-password" minlength="10"
+            autocomplete="new-password" minlength="10" maxlength="1024"
             placeholder="Mínimo 10 caracteres">
         </label>
 
-        <button id="vaultCreate" class="primary" type="button">Crear bóveda</button>
-        <button id="vaultUnlock" type="button">Desbloquear bóveda</button>
+        <button id="vaultCreate" class="primary" type="button">
+          Crear bóveda
+        </button>
+
+        <button id="vaultUnlock" type="button">
+          Desbloquear bóveda
+        </button>
       </div>
 
       <div id="vaultTools" hidden>
@@ -101,8 +110,8 @@
 
           <label>
             Contraseña
-            <input id="credPass" class="field" type="password" required
-              maxlength="2000" autocomplete="new-password">
+            <input id="credPass" class="field" type="password"
+              required maxlength="2000" autocomplete="new-password">
           </label>
 
           <label>
@@ -110,18 +119,25 @@
             <input id="credNotes" class="field" maxlength="500">
           </label>
 
-          <button class="primary" type="submit">Guardar credencial cifrada</button>
+          <button class="primary" type="submit">
+            Guardar credencial cifrada
+          </button>
         </form>
 
         <div class="inline">
-          <button id="vaultExport" type="button">Exportar .novapv cifrado</button>
+          <button id="vaultExport" type="button">
+            Exportar .novapv cifrado
+          </button>
 
           <label class="field">
             Importar .novapv
-            <input id="vaultImportFile" type="file" accept=".novapv,application/json">
+            <input id="vaultImportFile" type="file"
+              accept=".novapv,application/json">
           </label>
 
-          <button id="vaultLock" type="button">Bloquear bóveda</button>
+          <button id="vaultLock" type="button">
+            Bloquear bóveda
+          </button>
         </div>
 
         <div id="credList"></div>
@@ -130,9 +146,9 @@
       <div id="vaultStatus" class="status" aria-live="polite"></div>
 
       <p class="muted">
-        El cifrado no elimina los riesgos de un dispositivo comprometido
-        ni de perder la contraseña maestra. La sincronización con Supabase
-        todavía no está configurada.
+        El cifrado no elimina los riesgos de un dispositivo comprometido.
+        Si pierdes la contraseña maestra, podrías perder el acceso a los datos.
+        La sincronización con Supabase todavía no está configurada.
       </p>
     </section>
   </div>
@@ -141,14 +157,15 @@
     <h2>Sincronización con Supabase</h2>
 
     <p>
-      La bóveda permite exportar una copia cifrada. La sincronización
-      en Internet se configurará posteriormente con tablas, políticas RLS
-      y funciones de servidor. No se deben almacenar contraseñas sin cifrar.
+      La bóveda permite exportar e importar copias cifradas.
+      La sincronización en Internet se configurará posteriormente
+      con tablas, políticas RLS y funciones de servidor.
+      No deben almacenarse contraseñas sin cifrar.
     </p>
 
     <p class="muted">
-      Las notificaciones del navegador no están garantizadas cuando la página
-      está cerrada o el sistema suspende el navegador.
+      Las notificaciones del navegador no están garantizadas cuando
+      la página está cerrada o el sistema suspende el navegador.
     </p>
   </section>
 
@@ -162,14 +179,17 @@
 
   const $ = id => document.getElementById(id);
   const P = window.NOVA_PERSONAL;
+  const MAX_EVENT_FILE_SIZE = 5 * 1024 * 1024;
 
   if (!P) {
     $("remStatus").textContent =
       "No se pudo cargar el módulo de recordatorios y bóveda.";
     $("remStatus").className = "status danger";
+
     $("vaultStatus").textContent =
       "Comprueba que js/nova/recordatorios-boveda.js exista y cargue correctamente.";
     $("vaultStatus").className = "status danger";
+
     return;
   }
 
@@ -178,111 +198,240 @@
     $(id).className = error ? "status danger" : "status";
   }
 
-  function safe(value) {
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]);
-  }
-
-  function renderReminders() {
-    const reminders = P.reminders().sort(
-      (a, b) => a.date.localeCompare(b.date)
+  function localDateTimeValue(date = new Date()) {
+    const local = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60000
     );
 
-    $("remList").replaceChildren();
+    return local.toISOString().slice(0, 16);
+  }
 
-    if (!reminders.length) {
-      const empty = document.createElement("p");
-      empty.className = "muted";
-      empty.textContent = "No hay recordatorios guardados.";
-      $("remList").append(empty);
+  function makeId() {
+    if (globalThis.crypto && globalThis.crypto.randomUUID) {
+      return globalThis.crypto.randomUUID();
+    }
+
+    if (globalThis.crypto && globalThis.crypto.getRandomValues) {
+      const bytes = globalThis.crypto.getRandomValues(
+        new Uint8Array(16)
+      );
+
+      return Array.from(bytes)
+        .map(value => value.toString(16).padStart(2, "0"))
+        .join("");
+    }
+
+    return Date.now().toString(36) +
+      Math.random().toString(36).slice(2);
+  }
+
+  function validDate(value) {
+    return typeof value === "string" &&
+      value.trim() !== "" &&
+      Number.isFinite(new Date(value).getTime());
+  }
+
+  function normalizeImportedReminder(item, existingIds) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return null;
+    }
+
+    const title = typeof item.title === "string"
+      ? item.title.trim().slice(0, 160)
+      : "";
+
+    const date = typeof item.date === "string"
+      ? item.date.trim()
+      : "";
+
+    if (!title || !validDate(date)) {
+      return null;
+    }
+
+    let id = typeof item.id === "string" && item.id.trim()
+      ? item.id.trim().slice(0, 200)
+      : makeId();
+
+    if (existingIds.has(id)) {
+      id = makeId();
+
+      while (existingIds.has(id)) {
+        id = makeId();
+      }
+    }
+
+    existingIds.add(id);
+
+    return {
+      id,
+      title,
+      date,
+      notes: typeof item.notes === "string"
+        ? item.notes.slice(0, 1000)
+        : "",
+      created: validDate(item.created)
+        ? item.created
+        : new Date().toISOString()
+    };
+  }
+
+  /* -------------------------
+     RECORDATORIOS
+  ------------------------- */
+
+  function renderReminders() {
+    const list = $("remList");
+    list.replaceChildren();
+
+    let items;
+
+    try {
+      items = P.reminders();
+
+      if (!Array.isArray(items)) {
+        items = [];
+      }
+
+      items.sort((a, b) =>
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+    } catch (error) {
+      say("remStatus", error.message || "No se pudieron leer los recordatorios.", true);
       return;
     }
 
-    for (const reminder of reminders) {
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No hay recordatorios guardados.";
+      list.append(empty);
+      return;
+    }
+
+    for (const reminder of items) {
+      if (!reminder || typeof reminder !== "object") continue;
+
       const row = document.createElement("div");
       row.className = "row";
 
       const title = document.createElement("strong");
-      title.textContent = reminder.title;
+      title.textContent = String(reminder.title || "Sin título");
 
       const date = document.createElement("p");
       date.className = "muted";
-      date.textContent = new Date(reminder.date).toLocaleString();
+
+      date.textContent = validDate(reminder.date)
+        ? new Date(reminder.date).toLocaleString()
+        : "Fecha no válida";
 
       row.append(title, date);
 
       if (reminder.notes) {
         const notes = document.createElement("p");
-        notes.textContent = reminder.notes;
+        notes.textContent = String(reminder.notes);
         row.append(notes);
       }
 
       const remove = document.createElement("button");
       remove.type = "button";
       remove.textContent = "Eliminar";
-      remove.dataset.delRem = reminder.id;
+      remove.dataset.delRem = String(reminder.id || "");
 
       row.append(remove);
-      $("remList").append(row);
+      list.append(row);
     }
   }
 
   $("remForm").addEventListener("submit", event => {
     event.preventDefault();
 
-    const reminders = P.reminders();
+    try {
+      const title = $("remTitle").value.trim();
+      const date = $("remDate").value;
 
-    reminders.push({
-      id: crypto.randomUUID
-        ? crypto.randomUUID()
-        : String(Date.now()),
-      title: $("remTitle").value.trim(),
-      date: $("remDate").value,
-      notes: $("remNotes").value.trim(),
-      created: new Date().toISOString()
-    });
+      if (!title) {
+        throw new Error("Escribe un título para el recordatorio.");
+      }
 
-    P.saveReminders(reminders);
-    event.target.reset();
-    renderReminders();
-    say("remStatus", "Recordatorio guardado en este dispositivo.");
-    $("remDate").value = new Date(Date.now() + 3600000)
-      .toISOString().slice(0, 16);
+      if (!validDate(date)) {
+        throw new Error("Selecciona una fecha y hora válidas.");
+      }
+
+      const items = P.reminders();
+
+      items.push({
+        id: makeId(),
+        title,
+        date,
+        notes: $("remNotes").value.trim(),
+        created: new Date().toISOString()
+      });
+
+      P.saveReminders(items);
+
+      event.target.reset();
+      $("remDate").value = localDateTimeValue(
+        new Date(Date.now() + 3600000)
+      );
+
+      renderReminders();
+      say("remStatus", "Recordatorio guardado en este dispositivo.");
+    } catch (error) {
+      say("remStatus", error.message || "No se pudo guardar el recordatorio.", true);
+    }
   });
 
   $("remList").addEventListener("click", event => {
-    const id = event.target.dataset.delRem;
+    const id = event.target && event.target.dataset
+      ? event.target.dataset.delRem
+      : "";
+
     if (!id) return;
 
-    P.saveReminders(
-      P.reminders().filter(reminder => reminder.id !== id)
-    );
+    try {
+      P.saveReminders(
+        P.reminders().filter(reminder => reminder.id !== id)
+      );
 
-    renderReminders();
-    say("remStatus", "Recordatorio eliminado.");
+      renderReminders();
+      say("remStatus", "Recordatorio eliminado.");
+    } catch (error) {
+      say("remStatus", error.message || "No se pudo eliminar el recordatorio.", true);
+    }
   });
 
   $("exportEvents").addEventListener("click", () => {
-    const file = new Blob([
-      JSON.stringify({
-        format: "NOVA-EV",
-        version: 1,
-        events: P.reminders()
-      }, null, 2)
-    ], { type: "application/json" });
+    let url = "";
 
-    const url = URL.createObjectURL(file);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "recordatorios.nova.ev";
-    link.click();
+    try {
+      const blob = new Blob([
+        JSON.stringify({
+          format: "NOVA-EV",
+          version: 1,
+          events: P.reminders()
+        }, null, 2)
+      ], {
+        type: "application/json"
+      });
 
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+      url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "recordatorios.nova.ev";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      say("remStatus", "Se preparó la exportación de recordatorios.");
+
+    } catch (error) {
+      say("remStatus", error.message || "No se pudo exportar.", true);
+    } finally {
+      if (url) {
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }
+    }
   });
 
   $("importEvents").addEventListener("change", async event => {
@@ -290,58 +439,109 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      const data = JSON.parse(await file.text());
-      const entries = Array.isArray(data) ? data : data.events;
+      if (file.size > MAX_EVENT_FILE_SIZE) {
+        throw new Error("El archivo supera el límite de 5 MB.");
+      }
 
-      if ((data.format && data.format !== "NOVA-EV") ||
-          !Array.isArray(entries)) {
+      const data = JSON.parse(await file.text());
+
+      if (
+        !data ||
+        typeof data !== "object" ||
+        Array.isArray(data) ||
+        (data.format && data.format !== "NOVA-EV") ||
+        (data.version !== undefined && data.version !== 1)
+      ) {
         throw new Error("El archivo no tiene un formato .nova.ev válido.");
       }
 
-      const valid = entries
-        .filter(item =>
-          item &&
-          typeof item.title === "string" &&
-          typeof item.date === "string"
-        )
-        .map(item => ({
-          id: String(item.id || Date.now() + Math.random()),
-          title: item.title.slice(0, 160),
-          date: item.date,
-          notes: String(item.notes || "").slice(0, 1000),
-          created: item.created || new Date().toISOString()
-        }));
+      const entries = Array.isArray(data)
+        ? data
+        : data.events;
 
-      P.saveReminders([...P.reminders(), ...valid]);
+      if (!Array.isArray(entries)) {
+        throw new Error("El archivo no contiene una lista de recordatorios.");
+      }
+
+      const current = P.reminders();
+      const ids = new Set(
+        current
+          .filter(item => item && typeof item.id === "string")
+          .map(item => item.id)
+      );
+
+      const imported = [];
+      let rejected = 0;
+
+      for (const item of entries) {
+        const normalized = normalizeImportedReminder(item, ids);
+
+        if (normalized) {
+          imported.push(normalized);
+        } else {
+          rejected++;
+        }
+      }
+
+      if (!imported.length && rejected) {
+        throw new Error(
+          "No se encontró ningún recordatorio válido para importar."
+        );
+      }
+
+      P.saveReminders([...current, ...imported]);
       renderReminders();
-      say("remStatus", "Importados " + valid.length + " recordatorios.");
+
+      say(
+        "remStatus",
+        "Importados " + imported.length +
+        " recordatorios. Registros rechazados: " + rejected + "."
+      );
+
     } catch (error) {
-      say("remStatus", error.message, true);
+      say("remStatus", error.message || "No se pudo importar el archivo.", true);
     } finally {
       event.target.value = "";
     }
   });
 
   $("notifyBtn").addEventListener("click", async () => {
-    if (!("Notification" in window)) {
-      say("remStatus", "Este navegador no admite notificaciones.", true);
-      return;
+    try {
+      if (!("Notification" in window)) {
+        throw new Error("Este navegador no admite notificaciones.");
+      }
+
+      const permission = await Notification.requestPermission();
+
+      if (permission === "granted") {
+        say(
+          "remStatus",
+          "Permiso concedido. La página debe permanecer abierta para comprobar avisos."
+        );
+      } else {
+        say(
+          "remStatus",
+          "No se concedió el permiso de notificaciones.",
+          true
+        );
+      }
+    } catch (error) {
+      say(
+        "remStatus",
+        error.message || "No se pudo solicitar el permiso.",
+        true
+      );
     }
-
-    const permission = await Notification.requestPermission();
-
-    say(
-      "remStatus",
-      permission === "granted"
-        ? "Permiso concedido. La página debe permanecer abierta para comprobar avisos."
-        : "No se concedió permiso.",
-      permission !== "granted"
-    );
   });
+
+  /* -------------------------
+     CREDENCIALES DE LA BOVEDA
+  ------------------------- */
 
   async function renderCredentials() {
     const credentials = await P.vaultList();
     const box = $("credList");
+
     box.replaceChildren();
 
     if (!credentials.length) {
@@ -364,6 +564,7 @@
 
       const secret = document.createElement("p");
       secret.id = "secret-" + credential.id;
+      secret.className = "muted";
 
       const show = document.createElement("button");
       show.type = "button";
@@ -372,7 +573,7 @@
 
       const copy = document.createElement("button");
       copy.type = "button";
-      copy.textContent = "Copiar";
+      copy.textContent = "Copiar contraseña";
       copy.dataset.copy = credential.id;
 
       const remove = document.createElement("button");
@@ -389,6 +590,10 @@
     const password = $("master").value;
 
     try {
+      if (!password) {
+        throw new Error("Introduce la contraseña maestra.");
+      }
+
       if (await P.vaultExists()) {
         await P.unlockVault(password);
       } else {
@@ -397,27 +602,37 @@
 
       $("vaultTools").hidden = false;
       $("master").value = "";
+
       await renderCredentials();
 
       say(
         "vaultStatus",
-        "Bóveda desbloqueada. La clave se mantiene en memoria mientras la página está abierta."
+        "Bóveda desbloqueada. La clave permanece en memoria mientras la página está abierta."
       );
+
     } catch (error) {
-      say("vaultStatus", error.message, true);
+      say(
+        "vaultStatus",
+        error.message || "No se pudo desbloquear la bóveda.",
+        true
+      );
     }
   }
 
   $("vaultCreate").addEventListener("click", async () => {
     try {
       if (await P.vaultExists()) {
-        say("vaultStatus", "Ya existe una bóveda. Usa Desbloquear.", true);
+        say(
+          "vaultStatus",
+          "Ya existe una bóveda. Usa Desbloquear.",
+          true
+        );
         return;
       }
 
       await unlockVault();
     } catch (error) {
-      say("vaultStatus", error.message, true);
+      say("vaultStatus", error.message || "No se pudo crear la bóveda.", true);
     }
   });
 
@@ -436,22 +651,31 @@
 
       event.target.reset();
       await renderCredentials();
+
       say("vaultStatus", "Credencial guardada cifrada.");
+
     } catch (error) {
-      say("vaultStatus", error.message, true);
+      say(
+        "vaultStatus",
+        error.message || "No se pudo guardar la credencial.",
+        true
+      );
     }
   });
 
   $("credList").addEventListener("click", async event => {
+    const target = event.target;
+
+    if (!target || !target.dataset) return;
+
+    const id =
+      target.dataset.show ||
+      target.dataset.copy ||
+      target.dataset.delCred;
+
+    if (!id) return;
+
     try {
-      const target = event.target;
-      const id =
-        target.dataset.show ||
-        target.dataset.copy ||
-        target.dataset.delCred;
-
-      if (!id) return;
-
       if (target.dataset.delCred) {
         if (!confirm("¿Eliminar esta credencial de forma permanente?")) {
           return;
@@ -459,6 +683,7 @@
 
         await P.vaultDelete(id);
         await renderCredentials();
+
         say("vaultStatus", "Credencial eliminada.");
         return;
       }
@@ -466,27 +691,56 @@
       const credential = (await P.vaultList())
         .find(item => item.id === id);
 
-      if (!credential) return;
+      if (!credential) {
+        throw new Error("No se encontró la credencial seleccionada.");
+      }
 
       if (target.dataset.show) {
-        $("secret-" + id).textContent =
-          "Contraseña: " + credential.password;
-      } else {
+        const output = $("secret-" + id);
+
+        if (output.textContent) {
+          output.textContent = "";
+          target.textContent = "Mostrar contraseña";
+        } else {
+          output.textContent = "Contraseña: " + credential.password;
+          target.textContent = "Ocultar contraseña";
+        }
+
+      } else if (target.dataset.copy) {
+        if (!navigator.clipboard ||
+            typeof navigator.clipboard.writeText !== "function") {
+          throw new Error(
+            "El portapapeles no está disponible. Comprueba que la página use HTTPS."
+          );
+        }
+
         await navigator.clipboard.writeText(credential.password);
+
         say(
           "vaultStatus",
-          "Contraseña copiada. Evita copiarla en dispositivos compartidos."
+          "Contraseña copiada. Recuerda que puede permanecer en el portapapeles."
         );
       }
+
     } catch (error) {
-      say("vaultStatus", error.message, true);
+      say(
+        "vaultStatus",
+        error.message || "No se pudo completar la operación.",
+        true
+      );
     }
   });
 
-  $("vaultExport").addEventListener("click", () => {
-    P.exportEncrypted().catch(error =>
-      say("vaultStatus", error.message, true)
-    );
+  $("vaultExport").addEventListener("click", async () => {
+    try {
+      await P.exportEncrypted();
+      say(
+        "vaultStatus",
+        "Se solicitó la exportación de la bóveda cifrada."
+      );
+    } catch (error) {
+      say("vaultStatus", error.message || "No se pudo exportar la bóveda.", true);
+    }
   });
 
   $("vaultImportFile").addEventListener("change", async event => {
@@ -495,20 +749,29 @@
       if (!file) return;
 
       if (!confirm(
-        "Importar reemplazará la bóveda local actual. ¿Continuar?"
+        "Importar reemplazará la bóveda local actual. " +
+        "Exporta una copia si necesitas conservarla. ¿Continuar?"
       )) {
         return;
       }
 
       await P.importEncrypted(file);
+
       $("vaultTools").hidden = true;
+      $("master").value = "";
+      $("credList").replaceChildren();
 
       say(
         "vaultStatus",
         "Archivo cifrado importado. Desbloquea la bóveda con su contraseña maestra."
       );
+
     } catch (error) {
-      say("vaultStatus", error.message, true);
+      say(
+        "vaultStatus",
+        error.message || "No se pudo importar la bóveda.",
+        true
+      );
     } finally {
       event.target.value = "";
     }
@@ -516,59 +779,102 @@
 
   $("vaultLock").addEventListener("click", () => {
     P.lock();
+
     $("vaultTools").hidden = true;
+    $("master").value = "";
     $("credList").replaceChildren();
+
     say("vaultStatus", "Bóveda bloqueada.");
   });
 
+  /* -------------------------
+     NOTIFICACIONES PENDIENTES
+  ------------------------- */
+
   function checkDueReminders() {
-    if (!("Notification" in window) ||
-        Notification.permission !== "granted") {
-      return;
-    }
-
-    const now = Date.now();
-    const storageKey = "nova_notified_events_v1";
-    let fired = [];
-
     try {
-      fired = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    } catch {
-      fired = [];
-    }
-
-    const recent = fired.filter(item =>
-      now - item.time < 7 * 86400000
-    );
-
-    for (const reminder of P.reminders()) {
-      const when = new Date(reminder.date).getTime();
-
       if (
-        Number.isFinite(when) &&
-        when <= now &&
-        when >= now - 60000 &&
-        !recent.some(item => item.id === reminder.id)
+        !("Notification" in window) ||
+        Notification.permission !== "granted"
       ) {
-        new Notification("Nova: " + reminder.title, {
-          body: reminder.notes || "Tienes un recordatorio pendiente."
-        });
-
-        recent.push({ id: reminder.id, time: now });
+        return;
       }
-    }
 
-    localStorage.setItem(storageKey, JSON.stringify(recent));
+      const now = Date.now();
+      const storageKey = "nova_notified_events_v1";
+
+      let fired = [];
+
+      try {
+        const stored = JSON.parse(
+          localStorage.getItem(storageKey) || "[]"
+        );
+
+        if (Array.isArray(stored)) {
+          fired = stored.filter(item =>
+            item &&
+            typeof item.id === "string" &&
+            Number.isFinite(item.time)
+          );
+        }
+      } catch {
+        fired = [];
+      }
+
+      const recent = fired.filter(item =>
+        now - item.time < 7 * 86400000
+      );
+
+      const items = P.reminders();
+
+      for (const reminder of items) {
+        if (!reminder || typeof reminder.id !== "string") continue;
+
+        const when = new Date(reminder.date).getTime();
+
+        if (
+          Number.isFinite(when) &&
+          when <= now &&
+          when >= now - 60000 &&
+          !recent.some(item => item.id === reminder.id)
+        ) {
+          new Notification("Nova: " + reminder.title, {
+            body: reminder.notes ||
+              "Tienes un recordatorio pendiente."
+          });
+
+          recent.push({
+            id: reminder.id,
+            time: now
+          });
+        }
+      }
+
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(recent)
+      );
+
+    } catch (error) {
+      console.error("Nova: error al comprobar recordatorios.", error);
+    }
   }
+
+  /* -------------------------
+     INICIALIZACIÓN
+  ------------------------- */
 
   renderReminders();
 
-  $("remDate").value = new Date(Date.now() + 3600000)
-    .toISOString().slice(0, 16);
+  $("remDate").value = localDateTimeValue(
+    new Date(Date.now() + 3600000)
+  );
 
   checkDueReminders();
   setInterval(checkDueReminders, 30000);
+
 })();
 </script>
+
 </body>
 </html>

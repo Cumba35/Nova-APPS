@@ -1,13 +1,17 @@
-<!doctype html>
 
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101426">
-  <meta name="description" content="Archivo privado de proyectos de Nova Apps.">
-  <title>Proyectos archivados · Nova Apps</title>  <link rel="stylesheet" href="./css/admin.css">
-  <link rel="stylesheet" href="./css/proyectos-archivados.css">  <script type="module">
+  <meta name="description" content="Archivo de proyectos de Nova Apps para administración.">
+  <title>Proyectos archivados · Nova Apps</title>
+
+  <link rel="stylesheet" href="./css/admin.css">
+  <link rel="stylesheet" href="./css/proyectos-archivados.css">
+
+  <script type="module">
     import {
       setupAuth,
       guardPage
@@ -16,20 +20,16 @@
     setupAuth();
 
     const autorizado = await guardPage();
-    const login = document.querySelector("#login");
-    const panel = document.querySelector("#panel");
     const message = document.querySelector("#message");
 
-    if (autorizado) {
-      login?.classList.add("hidden");
-      panel?.classList.remove("hidden");
-
-      if (message) {
-        message.textContent =
-          "Acceso autorizado. El archivo está preparado para conectar con el almacenamiento privado.";
-      }
+    if (autorizado && message) {
+      message.textContent =
+        "Acceso autorizado. El archivo está preparado para conectar con el almacenamiento privado.";
     }
-  </script></head><body>
+  </script>
+</head>
+
+<body>
   <main class="archived-page">
     <header class="archived-header">
       <p class="archived-eyebrow">NOVA APPS · ADMINISTRACIÓN</p>
@@ -38,64 +38,54 @@
         Documentación interna, planes comerciales, decisiones y proyectos
         reservados para la administración de Nova Apps.
       </p>
-    </header><p id="message" role="status" aria-live="polite">
-  Comprobando autorización...
-</p>
+    </header>
 
-<section id="login" class="hidden archived-panel">
-  <h2>Acceso restringido</h2>
-  <p>
-    Inicia sesión con la cuenta de Google autorizada para administrar
-    Nova Apps.
-  </p>
-  <button id="loginBtn" type="button">
-    Iniciar sesión con Google
-  </button>
-</section>
-
-<section id="panel" class="hidden">
-  <div class="archived-toolbar">
-    <div>
-      <h2>Archivo interno</h2>
-      <p>Documentos organizados por proyecto y categoría.</p>
-    </div>
-
-    <a class="archived-back" href="./admin.html">
-      Volver al panel
-    </a>
-  </div>
-
-  <article class="archived-card">
-    <div class="archived-card-icon" aria-hidden="true">📁</div>
-    <div class="archived-card-content">
-      <span class="archived-category">COMERCIAL · PLANIFICACIÓN</span>
-      <h3>Datos comerciales y plan de monetización</h3>
-      <p>
-        Proyecto Nova Apps: servicios digitales, registro de actividades,
-        obligaciones fiscales, métodos de cobro, alojamiento web y etapas
-        previstas para generar ingresos.
-      </p>
-      <p class="archived-status">
-        Pendiente de conectar al almacenamiento privado.
-      </p>
-    </div>
-  </article>
-
-  <div class="archived-notice" role="note">
-    <strong>Protección de datos</strong>
-    <p>
-      Esta página no debe almacenar documentos confidenciales directamente
-      en archivos HTML, JavaScript ni otros archivos públicos del repositorio.
-      La autorización definitiva y la lectura de documentos deben verificarse
-      en el servidor mediante Supabase y políticas RLS.
+    <p id="message" role="status" aria-live="polite">
+      Comprobando autorización...
     </p>
-  </div>
-</section>
 
-<footer class="archived-footer">
-  <a href="./">Volver a Nova Apps</a>
-</footer>
+    <section id="login" class="hidden archived-panel">
+      <h2>Acceso restringido</h2>
+      <p>
+        Inicia sesión con la cuenta de Google autorizada para administrar
+        Nova Apps.
+      </p>
+      <button id="loginBtn" type="button">
+        Iniciar sesión con Google
+      </button>
+    </section>
 
+    <section id="panel" class="hidden">
+      <div class="archived-toolbar">
+        <div>
+          <h2>Archivo interno</h2>
+          <p>Documentos organizados por proyecto y categoría.</p>
+        </div>
+
+        <a class="archived-back" href="./admin.html">
+          Volver al panel
+        </a>
+      </div>
+
+      <div id="archivedProjects" aria-live="polite">
+        <!-- Los proyectos se mostrarán desde proyectos-archivados.js -->
+      </div>
+
+      <div class="archived-notice" role="note">
+        <strong>Protección de datos</strong>
+        <p>
+          Los documentos confidenciales no deben guardarse en archivos HTML
+          o JavaScript públicos. La autorización y el acceso a los documentos
+          privados deberán verificarse con Supabase y políticas RLS.
+        </p>
+      </div>
+    </section>
+
+    <footer class="archived-footer">
+      <a href="./">Volver a Nova Apps</a>
+    </footer>
   </main>
+
+  <script type="module" src="./js/admin/proyectos-archivados.js"></script>
 </body>
 </html>

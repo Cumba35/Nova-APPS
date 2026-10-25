@@ -1,0 +1,218 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <meta name="description" content="Administración comercial y monetización de Nova Apps.">
+  <title>Administración de monetización · Nova Apps</title>
+
+  <link rel="stylesheet" href="./css/admin.css">
+  <link rel="stylesheet" href="./css/monetizacion.css">
+
+  <script type="module">
+    import { setupAuth, guardPage } from "./admin-core.js";
+
+    setupAuth();
+
+    const autorizado = await guardPage();
+
+    if (autorizado) {
+      document.querySelector("#login")?.classList.add("hidden");
+      document.querySelector("#panel")?.classList.remove("hidden");
+    }
+  </script>
+</head>
+
+<body>
+  <main class="monetizacion-page">
+    <header class="monetizacion-header">
+      <a class="monetizacion-back" href="./admin.html">
+        ← Volver a administración
+      </a>
+
+      <p class="monetizacion-eyebrow">NOVA APPS · GESTIÓN INTERNA</p>
+      <h1>Administración de monetización</h1>
+      <p>
+        Centro de control para planificar, organizar y supervisar
+        las actividades comerciales de Nova Apps.
+      </p>
+    </header>
+
+    <p id="message" class="monetizacion-message" role="status" aria-live="polite">
+      Comprobando autorización...
+    </p>
+
+    <section id="login" class="hidden monetizacion-panel">
+      <h2>Acceso restringido</h2>
+      <p>Inicia sesión con la cuenta autorizada para administrar Nova Apps.</p>
+      <button id="loginBtn" type="button">Iniciar sesión con Google</button>
+    </section>
+
+    <section id="panel" class="hidden">
+      <section class="monetizacion-intro">
+        <h2>Panel comercial</h2>
+        <p>
+          Organiza las fuentes de ingresos, los gastos, los clientes,
+          las obligaciones y las tareas necesarias para poner en marcha
+          la monetización.
+        </p>
+        <p class="monetizacion-warning">
+          Los importes reales se incorporarán cuando se conecte el
+          almacenamiento privado. No se muestran cifras financieras ficticias.
+        </p>
+      </section>
+
+      <nav class="monetizacion-nav" aria-label="Secciones de monetización">
+        <a href="#plan-comercial">Plan comercial</a>
+        <a href="#finanzas">Ingresos y gastos</a>
+        <a href="#clientes">Clientes y anunciantes</a>
+        <a href="#precios">Precios y tarifas</a>
+        <a href="#cobros">Métodos de cobro</a>
+        <a href="#legal">Legal y fiscal</a>
+        <a href="#herramientas">Alojamiento y herramientas</a>
+        <a href="#estadisticas">Estadísticas</a>
+        <a href="#tareas">Tareas pendientes</a>
+        <a href="./proyectos-archivados.html">Proyectos archivados</a>
+      </nav>
+
+      <div class="monetizacion-grid">
+        <article class="monetizacion-card" id="plan-comercial">
+          <span class="monetizacion-icon" aria-hidden="true">01</span>
+          <h2>Plan comercial</h2>
+          <p>Organiza las actividades que pueden generar ingresos.</p>
+          <ul>
+            <li>Programación y desarrollo web.</li>
+            <li>Diseño gráfico y publicidad digital.</li>
+            <li>Promoción de aplicaciones y publicaciones patrocinadas.</li>
+            <li>Nova Market y herramientas propias.</li>
+            <li>Membresías VIP y funciones premium.</li>
+            <li>Servicios digitales para clientes nacionales e internacionales.</li>
+          </ul>
+          <p class="monetizacion-status">Estado: planificación</p>
+        </article>
+
+        <article class="monetizacion-card" id="finanzas">
+          <span class="monetizacion-icon" aria-hidden="true">02</span>
+          <h2>Ingresos y gastos</h2>
+          <p>Control previsto de los movimientos comerciales.</p>
+          <ul>
+            <li>Ingresos por servicio y producto.</li>
+            <li>Gastos de operación y herramientas.</li>
+            <li>Beneficio neto y balances mensuales.</li>
+            <li>Historial de movimientos.</li>
+          </ul>
+          <p class="monetizacion-status">Pendiente de conectar al almacenamiento privado</p>
+        </article>
+
+        <article class="monetizacion-card" id="clientes">
+          <span class="monetizacion-icon" aria-hidden="true">03</span>
+          <h2>Clientes y anunciantes</h2>
+          <p>Organiza las relaciones comerciales y las campañas.</p>
+          <ul>
+            <li>Datos comerciales de contacto.</li>
+            <li>Servicios solicitados y contratados.</li>
+            <li>Campañas publicitarias.</li>
+            <li>Pagos pendientes y estado de los trabajos.</li>
+          </ul>
+          <p class="monetizacion-status">Pendiente de implementar</p>
+        </article>
+
+        <article class="monetizacion-card" id="precios">
+          <span class="monetizacion-icon" aria-hidden="true">04</span>
+          <h2>Precios y tarifas</h2>
+          <p>Prepara el catálogo de ofertas comerciales.</p>
+          <ul>
+            <li>Tarifas de programación y diseño.</li>
+            <li>Precios de publicidad y promociones.</li>
+            <li>Planes VIP y funciones premium.</li>
+            <li>Descuentos y condiciones de cada oferta.</li>
+          </ul>
+          <p class="monetizacion-status">Pendiente de configurar</p>
+        </article>
+
+        <article class="monetizacion-card" id="cobros">
+          <span class="monetizacion-icon" aria-hidden="true">05</span>
+          <h2>Métodos de cobro</h2>
+          <p>Registra las opciones de pago que se hayan verificado.</p>
+          <ul>
+            <li>Transferencias y cobros nacionales autorizados.</li>
+            <li>Opciones de cobro para clientes extranjeros.</li>
+            <li>Comisiones, límites y requisitos.</li>
+            <li>Estado de verificación de cada proveedor.</li>
+          </ul>
+          <p class="monetizacion-status">Pendiente de verificar</p>
+        </article>
+
+        <article class="monetizacion-card" id="legal">
+          <span class="monetizacion-icon" aria-hidden="true">06</span>
+          <h2>Legal y fiscal</h2>
+          <p>Controla los requisitos necesarios para operar.</p>
+          <ul>
+            <li>Actividades económicas autorizadas.</li>
+            <li>Registro y documentación necesaria.</li>
+            <li>Obligaciones tributarias y de seguridad social.</li>
+            <li>Requisitos para clientes y servicios internacionales.</li>
+          </ul>
+          <p class="monetizacion-status">Pendiente de verificar con fuentes oficiales</p>
+        </article>
+
+        <article class="monetizacion-card" id="herramientas">
+          <span class="monetizacion-icon" aria-hidden="true">07</span>
+          <h2>Alojamiento y herramientas</h2>
+          <p>Controla la infraestructura y sus costes.</p>
+          <ul>
+            <li>Alojamiento web compatible con cada servicio.</li>
+            <li>Dominio y servicios técnicos.</li>
+            <li>Herramientas de desarrollo y diseño.</li>
+            <li>Costes recurrentes y fechas de renovación.</li>
+          </ul>
+          <p class="monetizacion-status">Pendiente de evaluar</p>
+        </article>
+
+        <article class="monetizacion-card" id="estadisticas">
+          <span class="monetizacion-icon" aria-hidden="true">08</span>
+          <h2>Estadísticas</h2>
+          <p>Cuando existan registros, permite analizar:</p>
+          <ul>
+            <li>Ingresos y gastos por mes.</li>
+            <li>Beneficios y evolución comercial.</li>
+            <li>Servicios y productos más rentables.</li>
+            <li>Campañas y membresías.</li>
+          </ul>
+          <p class="monetizacion-status">Disponible después de conectar los datos</p>
+        </article>
+
+        <article class="monetizacion-card" id="tareas">
+          <span class="monetizacion-icon" aria-hidden="true">09</span>
+          <h2>Tareas pendientes</h2>
+          <p>Pasos iniciales para avanzar de forma organizada.</p>
+          <ul>
+            <li>Verificar las actividades y requisitos legales.</li>
+            <li>Preparar el catálogo de servicios y precios.</li>
+            <li>Comparar métodos de cobro compatibles.</li>
+            <li>Definir alojamiento y costes.</li>
+            <li>Preparar el registro de ingresos y gastos.</li>
+          </ul>
+          <p class="monetizacion-status">Plan inicial</p>
+        </article>
+      </div>
+
+      <aside class="monetizacion-security">
+        <h2>Protección de la información</h2>
+        <p>
+          Esta página es la estructura inicial. Los registros de ingresos,
+          gastos, clientes y documentos no deben guardarse en archivos
+          públicos del repositorio. La autenticación y los permisos de
+          lectura y escritura se configurarán con Supabase y políticas RLS.
+        </p>
+      </aside>
+    </section>
+
+    <footer class="monetizacion-footer">
+      <a href="./">Volver a Nova Apps</a>
+    </footer>
+  </main>
+</body>
+</html>

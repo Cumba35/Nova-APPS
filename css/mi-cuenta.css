@@ -1,0 +1,464 @@
+
+/* =========================================
+   NOVA APPS — MENÚ DE CUENTA Y PERFIL
+   Archivo: css/mi-cuenta.css
+========================================= */
+
+.nova-account {
+  --account-bg: var(--surface, #ffffff);
+  --account-text: var(--text, #182033);
+  --account-muted: var(--muted, #64708a);
+  --account-border: var(--line, #e2e7f0);
+  --account-primary: var(--accent, #5b5ce2);
+
+  width: 100%;
+  color: var(--account-text);
+}
+
+.nova-account *,
+.nova-account *::before,
+.nova-account *::after {
+  box-sizing: border-box;
+}
+
+.nova-account button,
+.nova-account input,
+.nova-account select,
+.nova-account textarea {
+  font: inherit;
+}
+
+.nova-account button {
+  cursor: pointer;
+}
+
+.nova-account button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.nova-account [hidden] {
+  display: none !important;
+}
+
+/* Panel principal */
+
+.nova-account-panel {
+  width: 100%;
+  max-width: 1100px;
+  margin-inline: auto;
+  padding: clamp(14px, 3vw, 28px);
+  background: var(--account-bg);
+  color: var(--account-text);
+  border: 1px solid var(--account-border);
+  border-radius: 18px;
+}
+
+.nova-account-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--account-border);
+}
+
+.nova-account-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--account-primary);
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.nova-account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nova-account-heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.nova-account-heading h1,
+.nova-account-heading h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.25rem, 4vw, 1.8rem);
+  line-height: 1.25;
+}
+
+.nova-account-heading p {
+  margin: 5px 0 0;
+  color: var(--account-muted);
+  overflow-wrap: anywhere;
+}
+
+.nova-account-rank {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--account-border);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* Navegación de pestañas */
+
+.nova-account-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.nova-account-tab {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid var(--account-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--account-text);
+  font-weight: 650;
+  text-align: center;
+}
+
+.nova-account-tab:hover {
+  background: color-mix(
+    in srgb,
+    var(--account-primary) 8%,
+    transparent
+  );
+}
+
+.nova-account-tab[aria-selected="true"] {
+  background: var(--account-primary);
+  color: #ffffff;
+  border-color: var(--account-primary);
+}
+
+/* Contenido de las pestañas */
+
+.nova-account-content {
+  min-width: 0;
+  padding-top: 8px;
+}
+
+.nova-account-section {
+  min-width: 0;
+}
+
+.nova-account-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.nova-account-description {
+  margin: 0 0 20px;
+  color: var(--account-muted);
+}
+
+.nova-account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.nova-account-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--account-border);
+  border-radius: 14px;
+  background: color-mix(
+    in srgb,
+    var(--account-bg) 94%,
+    var(--account-primary)
+  );
+}
+
+.nova-account-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.nova-account-card p {
+  margin: 0;
+  color: var(--account-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Formularios */
+
+.nova-account-form {
+  display: grid;
+  gap: 16px;
+}
+
+.nova-account-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nova-account-field label,
+.nova-account-label {
+  font-weight: 650;
+}
+
+.nova-account-field input,
+.nova-account-field select,
+.nova-account-field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid var(--account-border);
+  border-radius: 10px;
+  background: var(--account-bg);
+  color: var(--account-text);
+}
+
+.nova-account-field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.nova-account-field input:focus-visible,
+.nova-account-field select:focus-visible,
+.nova-account-field textarea:focus-visible {
+  outline: 3px solid var(--account-primary);
+  outline-offset: 2px;
+}
+
+.nova-account-help {
+  color: var(--account-muted);
+  font-size: 0.88rem;
+}
+
+.nova-account-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.nova-account-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--account-border);
+  border-radius: 10px;
+  background: var(--account-bg);
+  color: var(--account-text);
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.nova-account-button-primary {
+  background: var(--account-primary);
+  border-color: var(--account-primary);
+  color: #ffffff;
+}
+
+.nova-account-button-danger {
+  border-color: #c43d4b;
+  color: #c43d4b;
+}
+
+/* Preferencias y permisos */
+
+.nova-account-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--account-border);
+}
+
+.nova-account-option:last-child {
+  border-bottom: 0;
+}
+
+.nova-account-option input[type="checkbox"],
+.nova-account-option input[type="radio"] {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 3px;
+  accent-color: var(--account-primary);
+}
+
+.nova-account-option-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.nova-account-option-copy strong {
+  display: block;
+}
+
+.nova-account-option-copy p {
+  margin: 4px 0 0;
+  color: var(--account-muted);
+  font-size: 0.92rem;
+}
+
+/* Amigos, solicitudes y contactos */
+
+.nova-account-friend-list {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-account-friend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--account-border);
+  border-radius: 12px;
+}
+
+.nova-account-friend-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--account-border);
+  font-weight: 800;
+}
+
+.nova-account-friend-info {
+  flex: 1;
+  min-width: 120px;
+}
+
+.nova-account-friend-info strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.nova-account-friend-info small {
+  display: block;
+  margin-top: 3px;
+  color: var(--account-muted);
+  overflow-wrap: anywhere;
+}
+
+.nova-account-friend-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Avisos y estados */
+
+.nova-account-status {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--account-border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+
+.nova-account-status:empty {
+  display: none;
+}
+
+.nova-account-status[data-type="success"] {
+  border-color: #16845b;
+}
+
+.nova-account-status[data-type="error"] {
+  border-color: #c43d4b;
+}
+
+.nova-account-empty {
+  padding: 24px 14px;
+  border: 1px dashed var(--account-border);
+  border-radius: 12px;
+  color: var(--account-muted);
+  text-align: center;
+}
+
+.nova-account-separator {
+  height: 1px;
+  margin: 20px 0;
+  border: 0;
+  background: var(--account-border);
+}
+
+/* Adaptación móvil */
+
+@media (max-width: 650px) {
+  .nova-account-panel {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .nova-account-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .nova-account-avatar {
+    flex-basis: 50px;
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+
+  .nova-account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nova-account-tabs {
+    margin-inline: -2px;
+    padding: 12px 2px;
+  }
+
+  .nova-account-friend-actions {
+    width: 100%;
+  }
+
+  .nova-account-friend-actions .nova-account-button {
+    flex: 1 1 auto;
+  }
+
+  .nova-account-actions .nova-account-button {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nova-account *,
+  .nova-account *::before,
+  .nova-account *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <meta name="description" content="Gestiona tus amigos y solicitudes de amistad en Nova Apps.">
+
+  <title>Amigos · Nova Apps</title>
+
+  <link rel="stylesheet" href="./css/amigos.css">
+</head>
+
+<body>
+  <main class="friends-container">
+    <header class="friends-header">
+      <div>
+        <a class="friends-back" href="./index.html">
+          ← Volver a Nova Apps
+        </a>
+        <h1>Amigos</h1>
+        <p>
+          Administra tus amistades, solicitudes y contactos invitados.
+        </p>
+      </div>
+    </header>
+
+    <nav class="friends-tabs" aria-label="Secciones de amigos">
+      <a href="#mis-amigos">Mis amigos</a>
+      <a href="#solicitudes">Solicitudes</a>
+      <a href="#invitaciones">Invitaciones</a>
+      <a href="#contactos">Contactos</a>
+    </nav>
+
+    <section class="friends-section" id="mis-amigos">
+      <h2>Mis amigos</h2>
+      <p class="friends-description">
+        Aquí aparecerán las personas con las que hayas conectado en Nova Apps.
+      </p>
+
+      <div id="friendsList" class="friends-list">
+        <p class="friends-empty">
+          Las amistades aparecerán cuando se conecte este apartado.
+        </p>
+      </div>
+
+      <form id="findFriendForm" class="friends-form">
+        <label for="friendSearch">Buscar usuario</label>
+        <input
+          id="friendSearch"
+          name="friendSearch"
+          type="search"
+          maxlength="100"
+          autocomplete="off"
+          placeholder="Nombre o nombre de usuario"
+        >
+        <button type="submit">Buscar</button>
+      </form>
+
+      <div id="friendSearchResults" aria-live="polite"></div>
+    </section>
+
+    <section class="friends-section" id="solicitudes">
+      <h2>Solicitudes de amistad</h2>
+
+      <div class="friends-two-columns">
+        <article class="friends-panel">
+          <h3>Recibidas</h3>
+          <div id="receivedRequests">
+            <p class="friends-empty">
+              No hay datos de solicitudes disponibles todavía.
+            </p>
+          </div>
+        </article>
+
+        <article class="friends-panel">
+          <h3>Enviadas</h3>
+          <div id="sentRequests">
+            <p class="friends-empty">
+              No hay datos de solicitudes disponibles todavía.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="friends-section" id="invitaciones">
+      <h2>Contactos invitados</h2>
+      <p class="friends-description">
+        Consulta las invitaciones que hayas enviado para que otras personas
+        se unan a Nova Apps.
+      </p>
+
+      <div id="invitedContacts">
+        <p class="friends-empty">
+          El historial de invitaciones estará disponible cuando se conecte el servicio.
+        </p>
+      </div>
+
+      <div class="friends-invite-box">
+        <label for="inviteLink">Enlace para invitar</label>
+        <input
+          id="inviteLink"
+          type="text"
+          readonly
+          value="El enlace se preparará al activar las invitaciones."
+        >
+        <button id="copyInviteLink" type="button" disabled>
+          Copiar enlace
+        </button>
+        <p id="inviteStatus" class="friends-status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="friends-section" id="contactos">
+      <h2>Contactos del dispositivo</h2>
+
+      <p class="friends-description">
+        Si decides conceder permiso, podrás seleccionar contactos e invitarlos
+        a Nova Apps. No se leerán ni enviarán contactos sin una acción expresa
+        tuya.
+      </p>
+
+      <div class="friends-permission">
+        <p id="contactsPermissionStatus" role="status" aria-live="polite">
+          No se ha solicitado acceso a tus contactos.
+        </p>
+
+        <button id="requestContactsPermission" type="button">
+          Seleccionar contactos
+        </button>
+      </div>
+
+      <div id="deviceContacts"></div>
+
+      <p class="friends-privacy">
+        La disponibilidad de la selección de contactos depende del navegador
+        y del dispositivo. Si no es compatible, podrás invitar mediante un
+        enlace sin conceder acceso a tu agenda.
+      </p>
+    </section>
+
+    <p id="friendsStatus" class="friends-status" role="status" aria-live="polite">
+      La página está preparada. Las funciones sociales se activarán al conectar
+      sus servicios y permisos.
+    </p>
+  </main>
+
+  <script type="module" src="./js/amigos.js"></script>
+</body>
+</html>

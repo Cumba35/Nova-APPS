@@ -26,13 +26,13 @@ body {
   margin: 0;
   background: var(--mon-bg);
   color: var(--mon-text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.6;
 }
 
 button,
-a {
+a,
+input {
   font: inherit;
 }
 
@@ -41,7 +41,8 @@ a {
 }
 
 a:focus-visible,
-button:focus-visible {
+button:focus-visible,
+input:focus-visible {
   outline: 3px solid var(--mon-accent);
   outline-offset: 4px;
 }
@@ -100,6 +101,7 @@ button:focus-visible {
   border-radius: 12px;
   background: var(--mon-panel);
   color: var(--mon-muted);
+  overflow-wrap: anywhere;
 }
 
 .monetizacion-panel {
@@ -114,15 +116,30 @@ button:focus-visible {
   margin-top: 0;
 }
 
-.monetizacion-panel button {
+.monetizacion-panel button,
+#monetizacionLogout {
   min-height: 44px;
   padding: 10px 18px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 10px;
   background: var(--mon-accent-dark);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
+}
+
+.monetizacion-panel button:hover,
+#monetizacionLogout:hover {
+  filter: brightness(1.12);
+}
+
+#monetizacionLogout {
+  margin: 0 0 20px;
+}
+
+#monetizacionLogout:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 .monetizacion-intro {
@@ -267,6 +284,99 @@ button:focus-visible {
   text-decoration: underline;
 }
 
+/* Tareas pendientes */
+
+.monetizacion-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--mon-border);
+  border-radius: 10px;
+  background: var(--mon-panel-soft);
+  cursor: pointer;
+}
+
+.monetizacion-task:hover {
+  border-color: var(--mon-accent);
+}
+
+.monetizacion-task input[type="checkbox"] {
+  flex: 0 0 20px;
+  width: 20px !important;
+  min-width: 20px;
+  height: 20px;
+  margin: 3px 0 0;
+  accent-color: var(--mon-accent-dark);
+  cursor: pointer;
+}
+
+.monetizacion-task span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.monetizacion-task input:checked + span {
+  color: var(--mon-muted);
+  text-decoration: line-through;
+}
+
+.monetizacion-card#tareas ul {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.monetizacion-card#tareas li {
+  margin: 0;
+}
+
+.monetizacion-card#tareas .monetizacion-status {
+  overflow-wrap: anywhere;
+}
+
+.monetizacion-card#tareas p[role="status"] {
+  color: var(--mon-accent);
+}
+
+.monetizacion-card#tareas p[hidden] {
+  display: none !important;
+}
+
+/* Detalles del archivo de proyectos */
+
+.archived-detail {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--mon-border);
+}
+
+.archived-detail h4 {
+  margin: 0 0 8px;
+  color: var(--mon-accent);
+  font-size: 1rem;
+}
+
+.archived-detail ul {
+  padding-left: 22px;
+}
+
+.archived-detail li {
+  margin: 8px 0;
+  color: var(--mon-muted);
+  overflow-wrap: anywhere;
+}
+
+.archived-status {
+  color: var(--mon-accent);
+  font-size: 0.9rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 700px) {
   .monetizacion-page {
     padding: 16px;
@@ -296,6 +406,10 @@ button:focus-visible {
   .monetizacion-panel,
   .monetizacion-security {
     padding: 18px;
+  }
+
+  .monetizacion-task {
+    padding: 10px;
   }
 }
 

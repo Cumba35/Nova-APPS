@@ -9,30 +9,30 @@
 
   <title>Administración · Nova Apps</title>
 
-  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="./css/admin.css">
 
   <script type="module">
     import {
       guardPage,
       setupAuth
-    } from './admin-core.js';
+    } from "./admin-core.js";
 
     setupAuth();
 
     const autorizado = await guardPage();
 
-    const mensaje = document.querySelector('#message');
-    const login = document.querySelector('#login');
-    const panel = document.querySelector('#panel');
+    const mensaje = document.querySelector("#message");
+    const login = document.querySelector("#login");
+    const panel = document.querySelector("#panel");
 
     if (autorizado) {
       if (mensaje) {
         mensaje.textContent =
-          'Sesión autorizada. Selecciona una herramienta.';
+          "Sesión autorizada. Selecciona una herramienta.";
       }
 
-      panel?.classList.remove('hidden');
-      login?.classList.add('hidden');
+      panel?.classList.remove("hidden");
+      login?.classList.add("hidden");
     }
   </script>
 </head>
@@ -91,6 +91,14 @@
 
         <a href="./inspectores.html">
           🛡️ Gestión de inspectores
+        </a>
+
+        <a href="./monetizacion.html">
+          💰 Administración de monetización
+        </a>
+
+        <a href="./proyectos-archivados.html">
+          📁 Proyectos archivados
         </a>
       </nav>
     </section>

@@ -1,0 +1,249 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <meta name="description" content="Estadísticas administrativas de Nova Apps.">
+  <title>Estadísticas · Nova Apps</title>
+
+  <link rel="stylesheet" href="./css/admin.css">
+  <link rel="stylesheet" href="./css/admin-estadisticas.css">
+
+  <script type="module">
+    import { setupAuth, guardPage } from "./admin-core.js";
+
+    setupAuth();
+
+    const autorizado = await guardPage();
+
+    if (autorizado) {
+      document.querySelector("#login")?.classList.add("hidden");
+      document.querySelector("#panel")?.classList.remove("hidden");
+
+      const mensaje = document.querySelector("#message");
+      if (mensaje) {
+        mensaje.textContent =
+          "Acceso autorizado. Las estadísticas reales estarán disponibles al conectar las fuentes de datos.";
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <main class="stats-page">
+    <header class="stats-header">
+      <a class="stats-back" href="./admin.html">
+        ← Volver a administración
+      </a>
+
+      <p class="stats-eyebrow">NOVA APPS · CENTRO DE CONTROL</p>
+      <h1>Estadísticas de Nova Apps</h1>
+      <p>
+        Supervisa el crecimiento, la actividad de los usuarios,
+        la participación y la valoración de la plataforma.
+      </p>
+    </header>
+
+    <p id="message" role="status" aria-live="polite">
+      Comprobando autorización...
+    </p>
+
+    <section id="login" class="hidden stats-login">
+      <h2>Acceso restringido</h2>
+      <p>Inicia sesión con la cuenta de Google autorizada.</p>
+      <button id="loginBtn" type="button">
+        Iniciar sesión con Google
+      </button>
+    </section>
+
+    <section id="panel" class="hidden stats-content">
+      <div class="stats-toolbar">
+        <div>
+          <h2>Resumen general</h2>
+          <p>Indicadores de rendimiento y participación.</p>
+        </div>
+
+        <button id="refreshStats" type="button" disabled>
+          Actualizar estadísticas
+        </button>
+      </div>
+
+      <p class="stats-notice">
+        Estado: pendiente de conectar las fuentes de datos.
+        Los indicadores aparecen sin cifras hasta que existan registros verificables.
+      </p>
+
+      <div class="stats-grid">
+        <article class="stats-card">
+          <span class="stats-icon" aria-hidden="true">U</span>
+          <p class="stats-label">Usuarios registrados</p>
+          <p class="stats-value" id="registeredUsers">—</p>
+          <p class="stats-description">Cuentas creadas en la plataforma</p>
+        </article>
+
+        <article class="stats-card">
+          <span class="stats-icon" aria-hidden="true">●</span>
+          <p class="stats-label">Usuarios activos</p>
+          <p class="stats-value" id="activeUsers">—</p>
+          <p class="stats-description">Según el período de actividad que se defina</p>
+        </article>
+
+        <article class="stats-card">
+          <span class="stats-icon" aria-hidden="true">C</span>
+          <p class="stats-label">Comentarios</p>
+          <p class="stats-value" id="totalComments">—</p>
+          <p class="stats-description">Comentarios registrados en el sitio</p>
+        </article>
+
+        <article class="stats-card">
+          <span class="stats-icon" aria-hidden="true">↗</span>
+          <p class="stats-label">Veces compartida</p>
+          <p class="stats-value" id="totalShares">—</p>
+          <p class="stats-description">Compartidos registrados mediante eventos</p>
+        </article>
+
+        <article class="stats-card">
+          <span class="stats-icon" aria-hidden="true">★</span>
+          <p class="stats-label">Valoración general</p>
+          <p class="stats-value" id="overallRating">—</p>
+          <p class="stats-description">Promedio y cantidad de valoraciones válidas</p>
+        </article>
+
+        <article class="stats-card">
+          <span class="stats-icon" aria-hidden="true">+</span>
+          <p class="stats-label">Nuevos usuarios</p>
+          <p class="stats-value" id="newUsers">—</p>
+          <p class="stats-description">Registros dentro del período seleccionado</p>
+        </article>
+      </div>
+
+      <section class="stats-section">
+        <h2>Actividad de la plataforma</h2>
+        <p>
+          Evolución de registros, usuarios activos, comentarios y compartidos.
+        </p>
+
+        <div class="stats-chart-placeholder" id="activityChart">
+          <p>Gráfico pendiente de conectar a los datos de actividad.</p>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>Mejores y peores valoraciones</h2>
+
+        <div class="stats-rating-grid">
+          <article class="stats-rating-card">
+            <h3>Mayor valoración</h3>
+            <p class="stats-value" id="highestRating">—</p>
+            <p id="highestRatedItem">Pendiente de datos</p>
+          </article>
+
+          <article class="stats-rating-card">
+            <h3>Menor valoración</h3>
+            <p class="stats-value" id="lowestRating">—</p>
+            <p id="lowestRatedItem">Pendiente de datos</p>
+          </article>
+        </div>
+
+        <p class="stats-footnote">
+          Las valoraciones se mostrarán con su cantidad de votos para evitar
+          comparar elementos con muestras muy diferentes.
+        </p>
+      </section>
+
+      <section class="stats-section">
+        <h2>Contenido y participación</h2>
+
+        <div class="stats-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Métrica</th>
+                <th>Total</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Aplicaciones publicadas</td>
+                <td id="publishedApps">—</td>
+                <td>Pendiente de conexión</td>
+              </tr>
+              <tr>
+                <td>Publicaciones activas</td>
+                <td id="publishedPosts">—</td>
+                <td>Pendiente de conexión</td>
+              </tr>
+              <tr>
+                <td>Valoraciones recibidas</td>
+                <td id="ratingCount">—</td>
+                <td>Pendiente de conexión</td>
+              </tr>
+              <tr>
+                <td>Visitas a la página</td>
+                <td id="pageViews">—</td>
+                <td>Requiere seguimiento de visitas</td>
+              </tr>
+              <tr>
+                <td>Sesiones de usuarios</td>
+                <td id="userSessions">—</td>
+                <td>Requiere seguimiento de sesiones</td>
+              </tr>
+              <tr>
+                <td>Solicitudes de amistad</td>
+                <td id="friendRequests">—</td>
+                <td>Pendiente de conexión</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>Rendimiento y experiencia</h2>
+
+        <div class="stats-detail-grid">
+          <article class="stats-detail-card">
+            <h3>Participación</h3>
+            <p>Comentarios, valoraciones, compartidos y otras interacciones.</p>
+            <strong id="engagementRate">Pendiente de datos</strong>
+          </article>
+
+          <article class="stats-detail-card">
+            <h3>Retención</h3>
+            <p>Usuarios que regresan después de su primera visita.</p>
+            <strong id="retentionRate">Pendiente de datos</strong>
+          </article>
+
+          <article class="stats-detail-card">
+            <h3>Errores técnicos</h3>
+            <p>Fallos detectados y registrados durante el uso del sitio.</p>
+            <strong id="technicalErrors">Pendiente de seguimiento</strong>
+          </article>
+
+          <article class="stats-detail-card">
+            <h3>Dispositivos</h3>
+            <p>Distribución de visitas por tipo de dispositivo y navegador.</p>
+            <strong id="deviceStats">Pendiente de seguimiento</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>Privacidad y control</h2>
+        <p>
+          Las estadísticas deben usar datos reales y permisos adecuados.
+          Los datos personales de los usuarios no se mostrarán innecesariamente.
+          El acceso a las fuentes privadas se protegerá mediante Supabase y RLS.
+        </p>
+      </section>
+    </section>
+
+    <footer class="stats-footer">
+      <a href="./admin.html">Volver al panel administrativo</a>
+    </footer>
+  </main>
+</body>
+</html>

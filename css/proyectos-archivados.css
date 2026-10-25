@@ -1,0 +1,252 @@
+/* NOVA APPS — Proyectos archivados */
+
+.archived-page {
+  width: min(100% - 32px, 1000px);
+  margin: 0 auto;
+  padding: 28px 0 40px;
+  color: var(--text, #e9edfa);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.archived-page *,
+.archived-page *::before,
+.archived-page *::after {
+  box-sizing: border-box;
+}
+
+.archived-header {
+  padding: 28px;
+  margin-bottom: 24px;
+  border: 1px solid #303954;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #191f39, #25244a);
+}
+
+.archived-eyebrow {
+  margin: 0 0 12px;
+  color: #a9b4ff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.archived-header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.archived-description {
+  max-width: 680px;
+  margin: 14px 0 0;
+  color: #c0c8df;
+  line-height: 1.7;
+}
+
+.archived-page #message {
+  padding: 13px 16px;
+  margin: 0 0 18px;
+  border: 1px solid #35405d;
+  border-radius: 12px;
+  background: #171d30;
+  color: #dbe2f5;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.archived-panel,
+.archived-card,
+.archived-notice {
+  border: 1px solid #303954;
+  border-radius: 18px;
+  background: #171d30;
+}
+
+.archived-panel {
+  padding: 24px;
+}
+
+.archived-panel h2 {
+  margin-top: 0;
+}
+
+.archived-panel p,
+.archived-toolbar p,
+.archived-card-content p,
+.archived-notice p {
+  color: #b8c2d9;
+  line-height: 1.7;
+}
+
+.archived-page button,
+.archived-back {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+  padding: 11px 16px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: #6878ff;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.archived-page button:hover,
+.archived-back:hover {
+  background: #5262e8;
+}
+
+.archived-page button:focus-visible,
+.archived-back:focus-visible,
+.archived-footer a:focus-visible {
+  outline: 3px solid #a9b4ff;
+  outline-offset: 3px;
+}
+
+.archived-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 28px 0 18px;
+}
+
+.archived-toolbar h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.archived-toolbar p {
+  margin: 7px 0 0;
+}
+
+.archived-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 17px;
+  padding: 22px;
+}
+
+.archived-card-icon {
+  display: grid;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border: 1px solid #414a70;
+  border-radius: 15px;
+  background: #252b49;
+  font-size: 1.6rem;
+}
+
+.archived-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.archived-category {
+  display: inline-block;
+  color: #a9b4ff;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+}
+
+.archived-card-content h3 {
+  margin: 8px 0;
+  font-size: 1.15rem;
+  overflow-wrap: anywhere;
+}
+
+.archived-card-content p {
+  margin: 8px 0;
+}
+
+.archived-status {
+  padding-top: 10px;
+  border-top: 1px solid #303954;
+  font-size: 0.86rem;
+}
+
+.archived-notice {
+  padding: 19px;
+  margin-top: 20px;
+  border-color: #62542d;
+  background: #282416;
+}
+
+.archived-notice strong {
+  color: #f4d68b;
+}
+
+.archived-notice p {
+  margin-bottom: 0;
+  color: #e0d5b6;
+}
+
+.archived-footer {
+  padding-top: 26px;
+  text-align: center;
+}
+
+.archived-footer a {
+  color: #a9b4ff;
+  text-decoration: none;
+}
+
+.archived-footer a:hover {
+  text-decoration: underline;
+}
+
+.archived-page .hidden,
+.archived-page [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .archived-page {
+    width: min(100% - 20px, 1000px);
+    padding-top: 14px;
+  }
+
+  .archived-header {
+    padding: 21px;
+    border-radius: 17px;
+  }
+
+  .archived-card {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .archived-card-icon {
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
+    font-size: 1.25rem;
+  }
+
+  .archived-toolbar {
+    align-items: stretch;
+  }
+
+  .archived-back {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archived-page * {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

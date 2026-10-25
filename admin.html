@@ -1,17 +1,11 @@
-
 <!doctype html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101426">
-  <meta name="description" content="Panel privado de administración de Nova Apps.">
-
-  <title>Administración · Nova Apps</title>
-
-  <link rel="stylesheet" href="./css/admin.css">
-
-  <script type="module">
+  <meta name="description" content="Panel privado de administración de Nova Apps.">  <title>Administración · Nova Apps</title>  <link rel="stylesheet" href="./css/admin.css">  <script type="module">
     import {
       guardPage,
       setupAuth
@@ -34,80 +28,80 @@
       panel?.classList.remove("hidden");
       login?.classList.add("hidden");
     }
-  </script>
-</head>
-
-<body>
+  </script></head><body>
   <main>
     <header>
       <h1>Nova Apps · Administración</h1>
       <p class="muted">
         Panel privado para gestionar las herramientas de Nova Apps.
       </p>
-    </header>
+    </header><p id="message" role="status" aria-live="polite">
+  Comprobando sesión...
+</p>
 
-    <p id="message" role="status" aria-live="polite">
-      Comprobando sesión...
-    </p>
+<section id="login" class="hidden">
+  <h2>Iniciar sesión</h2>
 
-    <section id="login" class="hidden">
-      <h2>Iniciar sesión</h2>
+  <p>
+    Accede con la cuenta de Google autorizada para administrar
+    Nova Apps.
+  </p>
 
-      <p>
-        Accede con la cuenta de Google autorizada para administrar
-        Nova Apps.
-      </p>
+  <button id="loginBtn" type="button">
+    Iniciar sesión con Google
+  </button>
+</section>
 
-      <button id="loginBtn" type="button">
-        Iniciar sesión con Google
-      </button>
-    </section>
+<section id="panel" class="hidden">
+  <p id="account" class="muted"></p>
 
-    <section id="panel" class="hidden">
-      <p id="account" class="muted"></p>
+  <button id="logoutBtn" class="secondary" type="button">
+    Cerrar sesión
+  </button>
 
-      <button id="logoutBtn" class="secondary" type="button">
-        Cerrar sesión
-      </button>
+  <h2>Herramientas administrativas</h2>
 
-      <h2>Herramientas administrativas</h2>
+  <nav class="nav" aria-label="Herramientas de administración">
+    <a href="./admin-apps.html">
+      📦 Gestión de aplicaciones
+    </a>
 
-      <nav class="nav" aria-label="Herramientas de administración">
-        <a href="./admin-apps.html">
-          📦 Gestión de aplicaciones
-        </a>
+    <a href="./admin-diseno.html">
+      🎨 Diseño de la página
+    </a>
 
-        <a href="./admin-diseno.html">
-          🎨 Diseño de la página
-        </a>
+    <a href="./admin-rangos.html">
+      👥 Usuarios y rangos
+    </a>
 
-        <a href="./admin-rangos.html">
-          👥 Usuarios y rangos
-        </a>
+    <a href="./admin-estadisticas.html">
+      📊 Estadísticas de Nova Apps
+    </a>
 
-        <a href="./admin-config.html">
-          ⚙️ Configuración
-        </a>
+    <a href="./admin-config.html">
+      ⚙️ Configuración
+    </a>
 
-        <a href="./inspectores.html">
-          🛡️ Gestión de inspectores
-        </a>
+    <a href="./inspectores.html">
+      🛡️ Gestión de inspectores
+    </a>
 
-        <a href="./monetizacion.html">
-          💰 Administración de monetización
-        </a>
+    <a href="./monetizacion.html">
+      💰 Administración de monetización
+    </a>
 
-        <a href="./proyectos-archivados.html">
-          📁 Proyectos archivados
-        </a>
-      </nav>
-    </section>
+    <a href="./proyectos-archivados.html">
+      📁 Proyectos archivados
+    </a>
+  </nav>
+</section>
 
-    <p>
-      <a class="back" href="./">
-        Volver a Nova Apps
-      </a>
-    </p>
+<p>
+  <a class="back" href="./">
+    Volver a Nova Apps
+  </a>
+</p>
+
   </main>
 </body>
 </html>

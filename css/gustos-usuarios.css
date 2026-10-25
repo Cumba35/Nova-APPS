@@ -1,0 +1,202 @@
+/* NOVA APPS — Estilos de administración de gustos y preferencias */
+
+.nova-admin-gustos {
+  width: 100%;
+  color: var(--text-color, #e8edf7);
+  font-family: inherit;
+}
+
+.nova-admin-gustos *,
+.nova-admin-gustos *::before,
+.nova-admin-gustos *::after {
+  box-sizing: border-box;
+}
+
+.nova-admin-gustos h2,
+.nova-admin-gustos h3 {
+  margin-top: 0;
+}
+
+.nova-admin-gustos header p {
+  color: var(--muted-color, #aab5c8);
+  line-height: 1.6;
+}
+
+.nova-admin-gustos__search {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.nova-admin-gustos__search label,
+.nova-admin-gustos__field label {
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.nova-admin-gustos__search input,
+.nova-admin-gustos__field input,
+.nova-admin-gustos__field select,
+.nova-admin-gustos__field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border-color, #354156);
+  border-radius: 11px;
+  outline: none;
+  background: var(--input-color, #151d2b);
+  color: var(--text-color, #e8edf7);
+  font: inherit;
+}
+
+.nova-admin-gustos__search input:focus,
+.nova-admin-gustos__field input:focus,
+.nova-admin-gustos__field select:focus,
+.nova-admin-gustos__field textarea:focus {
+  border-color: #7186ff;
+  box-shadow: 0 0 0 3px rgba(83, 109, 254, 0.15);
+}
+
+.nova-admin-gustos__layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.6fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.nova-admin-gustos__users,
+.nova-admin-gustos__editor {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border-color, #354156);
+  border-radius: 16px;
+  background: var(--card-color, #192333);
+}
+
+.nova-admin-gustos__users h3,
+.nova-admin-gustos__editor h3 {
+  margin-bottom: 14px;
+  font-size: 1.05rem;
+}
+
+#nova-gustos-lista {
+  display: grid;
+  gap: 9px;
+}
+
+.nova-admin-gustos__user {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border-color, #354156);
+  border-radius: 11px;
+  background: var(--panel-color, #202a3a);
+  color: var(--text-color, #e8edf7);
+  text-align: left;
+  cursor: pointer;
+}
+
+.nova-admin-gustos__user:hover,
+.nova-admin-gustos__user.is-selected {
+  border-color: #7186ff;
+  background: rgba(83, 109, 254, 0.14);
+}
+
+.nova-admin-gustos__user strong,
+.nova-admin-gustos__user small {
+  overflow-wrap: anywhere;
+}
+
+.nova-admin-gustos__user small {
+  color: var(--muted-color, #aab5c8);
+  font-size: 0.8rem;
+}
+
+.nova-admin-gustos__editor > p {
+  color: var(--muted-color, #aab5c8);
+  line-height: 1.5;
+}
+
+.nova-admin-gustos__field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 15px;
+}
+
+.nova-admin-gustos__field textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.nova-admin-gustos__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.nova-admin-gustos__actions button {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: #536dfe;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.nova-admin-gustos__actions button:hover {
+  background: #4057e8;
+}
+
+.nova-admin-gustos__actions button:last-child {
+  border-color: #9e3445;
+  background: transparent;
+  color: #ff9ca9;
+}
+
+.nova-admin-gustos__actions button:last-child:hover {
+  background: rgba(158, 52, 69, 0.16);
+}
+
+#nova-gustos-mensaje {
+  min-height: 1.4em;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+
+.nova-admin-gustos [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .nova-admin-gustos__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nova-admin-gustos__users,
+  .nova-admin-gustos__editor {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .nova-admin-gustos__actions {
+    flex-direction: column;
+  }
+
+  .nova-admin-gustos__actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nova-admin-gustos * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

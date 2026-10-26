@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="es">
 <head>
@@ -27,6 +26,8 @@
       <a href="./admin-apps.html">Aplicaciones</a>
       <a href="./admin-diseno.html">Diseño</a>
       <a href="./admin-rangos.html">Rangos</a>
+      <a href="./admin-revisor-zip.html">Revisor ZIP e IA</a>
+      <a href="./admin-estadisticas.html">Estadísticas</a>
       <a href="./inspectores.html">Inspectores</a>
     </nav>
     <button id="logoutBtn" class="secondary" type="button">Cerrar sesión</button>
@@ -46,6 +47,7 @@
         <li>No publiques claves secretas ni claves <code>service_role</code> en el navegador.</li>
         <li>Las políticas RLS deben proteger las operaciones de lectura, inserción, actualización y eliminación.</li>
         <li>La restricción del propietario en la interfaz no sustituye las políticas de la base de datos.</li>
+        <li>Una consulta correcta confirma el acceso de lectura, no todos los permisos.</li>
         <li>La página pública solo mostrará la configuración publicada si <code>index.html</code> la lee y aplica.</li>
       </ul>
     </section>
@@ -60,16 +62,33 @@ import {
 setupAuth();
 
 const tables = [
-  { label: 'Catálogo de aplicaciones', table: 'apps', column: 'id' },
-  { label: 'Perfiles y rangos', table: 'nova_user_profiles', column: 'user_id' },
-  { label: 'Borrador de la página', table: 'site_config_draft', column: 'id' },
-  { label: 'Configuración publicada', table: 'site_config_published', column: 'id' }
+  {
+    label: 'Catálogo de aplicaciones',
+    table: 'apps',
+    column: 'id'
+  },
+  {
+    label: 'Usuarios y rangos',
+    table: 'nova_user_roles',
+    column: 'user_id'
+  },
+  {
+    label: 'Borrador de la página',
+    table: 'site_config_draft',
+    column: 'id'
+  },
+  {
+    label: 'Configuración publicada',
+    table: 'site_config_published',
+    column: 'id'
+  }
 ];
 
 let checking = false;
 
 async function checkStatus() {
   if (checking) return;
+
   checking = true;
 
   const button = $('#checkBtn');
@@ -83,7 +102,7 @@ async function checkStatus() {
     for (const item of tables) {
       const row = document.createElement('div');
       row.className = 'result';
-      row.textContent = item.label + ': comprobando...';
+      row.textContent = `${item.label}: comprobando...`;
       box.append(row);
 
       try {
@@ -92,17 +111,29 @@ async function checkStatus() {
           .select(item.column)
           .limit(1);
 
-        row.textContent = item.label + ': ' +
-          (error
-            ? 'No disponible — ' + error.message
-            : 'consulta permitida');
+        if (error) {
+          row.textContent =
+            `${item.label}: no disponible — ${error.message}`;
+          row.dataset.status = 'error';
+        } else {
+          row.textContent =
+            `${item.label}: consulta de lectura permitida`;
+          row.dataset.status = 'ok';
+        }
       } catch (error) {
-        row.textContent = item.label + ': error — ' +
-          (error?.message || String(error));
+        row.textContent =
+          `${item.label}: error — ${error?.message || String(error)}`;
+        row.dataset.status = 'error';
       }
     }
 
-    say('Comprobación terminada. Una consulta correcta confirma la lectura, no todos los permisos de escritura.');
+    const failures = box.querySelectorAll('[data-status="error"]').length;
+
+    say(
+      failures === 0
+        ? 'Comprobación terminada. Todas las consultas de lectura respondieron correctamente.'
+        : `Comprobación terminada. Tablas con errores: ${failures} de ${tables.length}.`
+    );
   } finally {
     checking = false;
     button.disabled = false;

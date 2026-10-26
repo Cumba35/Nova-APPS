@@ -1,119 +1,193 @@
+:root {
+  color-scheme: dark;
+  --background: #101426;
+  --surface: #191f35;
+  --border: #343d59;
+  --text: #f1f3fa;
+  --muted: #aab4cc;
+  --accent: #7c9cff;
+  --success: #75dfa7;
+  --error: #ff9292;
+}
 
 * {
   box-sizing: border-box;
 }
 
-:root {
-  color-scheme: dark;
-  --bg: #101426;
-  --panel: #1b2239;
-  --text: #f4f6ff;
-  --muted: #bdc7e3;
-  --border: #414b6b;
-  --accent: #7779ff;
-  --secondary: #35405e;
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
   margin: 0;
-  padding: 14px;
-  background: var(--bg);
+  min-height: 100vh;
+  background: var(--background);
   color: var(--text);
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  line-height: 1.6;
 }
 
 main {
-  width: 100%;
-  max-width: 850px;
+  width: min(100% - 32px, 1000px);
   margin: 0 auto;
+  padding: 28px 0 48px;
 }
 
-section,
-.result {
-  margin: 14px 0;
-  padding: 16px;
-  background: var(--panel);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+h1,
+h2 {
+  line-height: 1.25;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+p {
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+section {
+  margin: 22px 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }
 
 button {
-  width: 100%;
-  margin: 6px 0;
-  padding: 12px;
-  border: 0;
-  border-radius: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   background: var(--accent);
-  color: #fff;
+  color: #101426;
   font: inherit;
-  font-weight: 700;
+  font-weight: 650;
   cursor: pointer;
 }
 
 button:hover {
-  filter: brightness(1.1);
-}
-
-button.secondary {
-  background: var(--secondary);
+  filter: brightness(1.08);
 }
 
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: 3px solid var(--success);
+  outline-offset: 3px;
 }
 
-.hidden {
-  display: none !important;
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.muted,
-small {
-  color: var(--muted);
+button.secondary {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--text);
 }
 
-#message {
-  white-space: pre-wrap;
+a {
+  color: var(--accent);
   overflow-wrap: anywhere;
 }
 
 .nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  margin: 16px 0;
 }
 
 .nav a {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
   padding: 8px 12px;
-  background: #283250;
-  border-radius: 8px;
-  color: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   text-decoration: none;
 }
 
-.nav a:hover {
-  background: #354366;
+#message {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+
+#checkResults {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .result {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   overflow-wrap: anywhere;
-  word-break: break-word;
+}
+
+.result[data-status="ok"] {
+  border-left: 4px solid var(--success);
+}
+
+.result[data-status="error"] {
+  border-left: 4px solid var(--error);
 }
 
 code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #0c1020;
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 480px) {
-  body {
-    padding: 8px;
+li {
+  margin: 8px 0;
+}
+
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  main {
+    width: min(100% - 20px, 1000px);
+    padding-top: 20px;
   }
 
-  section,
-  .result {
-    padding: 12px;
+  section {
+    padding: 15px;
+  }
+
+  .nav {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .nav a,
+  button {
+    width: 100%;
   }
 }

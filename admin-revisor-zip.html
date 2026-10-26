@@ -3,853 +3,690 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101426">
-  <meta name="description" content="Revisión estática de proyectos ZIP con Nova Apps y Nova IA.">
   <title>Revisor de proyectos · Nova Apps</title>
   <link rel="stylesheet" href="./css/admin.css">
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
-    .tool-section{margin-top:24px}
-    .tool-card{margin:16px 0;padding:16px;border:1px solid var(--borde);border-radius:12px;background:var(--panel-secundario)}
-    .tool-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-    .tool-status{padding:12px;border-radius:8px;background:var(--panel-secundario);white-space:pre-wrap;overflow-wrap:anywhere}
-    .tool-list{max-height:360px;overflow:auto;padding:0;list-style:none}
-    .tool-list li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--borde);overflow-wrap:anywhere}
-    .tool-code{box-sizing:border-box;width:100%;min-height:240px;font-family:monospace;white-space:pre;tab-size:2}
-    .tool-output{box-sizing:border-box;width:100%;min-height:220px;max-height:650px;overflow:auto;padding:14px;border:1px solid var(--borde);border-radius:10px;background:#090d19;color:#edf1fa;white-space:pre-wrap;overflow-wrap:anywhere;font-family:monospace}
-    .tool-muted{color:var(--suave);font-size:.92rem}
-    .tool-warning{border-left:4px solid #e0a44d;padding-left:12px}
-    .tool-progress{width:100%;height:12px;accent-color:#7658e8}
-    .tool-list button{min-height:38px;padding:8px 12px}
-    [hidden]{display:none!important}
-    button:disabled{opacity:.55;cursor:not-allowed}
+    [hidden],.hidden{display:none!important}
+    main{max-width:1100px;margin:auto;padding:20px}
+    section{margin:24px 0}
+    .card{padding:16px;border:1px solid #7775;border-radius:12px;margin:12px 0}
+    .row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+    input,select,textarea{box-sizing:border-box;max-width:100%;width:100%;margin:6px 0;padding:10px}
+    button{padding:10px 14px;cursor:pointer}
+    button:disabled{opacity:.5}
+    progress{width:100%}
+    pre{padding:14px;background:#101426;color:#f1f3fa;white-space:pre-wrap;overflow-wrap:anywhere;max-height:650px;overflow:auto}
+    #fileList{max-height:320px;overflow:auto}
+    #fileList li{padding:7px;border-bottom:1px solid #7775;overflow-wrap:anywhere}
+    .status{padding:10px;border-radius:8px;background:#7772;white-space:pre-wrap}
   </style>
   <script type="module">
     import { guardPage, setupAuth } from "./admin-core.js";
-
     setupAuth();
-    const autorizado = await guardPage();
-
-    if (autorizado) {
-      document.querySelector("#login")?.classList.add("hidden");
-      document.querySelector("#panel")?.classList.remove("hidden");
+    const authorized = await guardPage();
+    if (authorized) {
       document.body.dataset.adminAuthorized = "true";
-      const mensaje = document.querySelector("#message");
-      if (mensaje) mensaje.textContent = "Acceso administrativo autorizado.";
+      document.querySelector("#login").hidden = true;
+      document.querySelector("#panel").hidden = false;
+      document.querySelector("#status").textContent = "Acceso administrativo autorizado.";
       window.dispatchEvent(new Event("nova-admin-revisor-autorizado"));
     }
   </script>
 </head>
 <body>
 <main>
-  <header>
-    <p><a href="./admin.html">← Volver a Administración</a></p>
-    <h1>Revisor integral de proyectos</h1>
-    <p class="muted">Inventario, comprobaciones automáticas y revisión asistida por Nova IA.</p>
-  </header>
+  <p><a href="./admin.html">← Administración</a></p>
+  <h1>Revisor integral de proyectos</h1>
+  <p id="status" class="status" role="status">Comprobando sesión...</p>
 
-  <p id="message" role="status" aria-live="polite">Comprobando sesión...</p>
-
-  <section id="login" class="hidden">
+  <section id="login" hidden>
     <h2>Acceso restringido</h2>
-    <p>Inicia sesión con la cuenta de Google autorizada.</p>
     <button id="loginBtn" type="button">Iniciar sesión con Google</button>
   </section>
 
-  <section id="panel" class="hidden">
-    <p id="account" class="muted"></p>
-    <button id="logoutBtn" class="secondary" type="button">Cerrar sesión</button>
+  <div id="panel" hidden>
+    <button id="logoutBtn" type="button">Cerrar sesión</button>
 
-    <section class="tool-section">
-      <h2>1. Abrir proyecto</h2>
-      <p class="tool-warning">
-        Esta herramienta no ejecuta ni compila código. No sustituye las pruebas reales.
-        No incluyas contraseñas, tokens ni claves privadas en el ZIP.
-      </p>
-      <label for="zipFile">Archivo ZIP</label>
+    <section>
+      <h2>1. Abrir proyecto ZIP</h2>
+      <p>El proyecto no se ejecutará ni publicará. Máximo 25 MB y 1.000 archivos.</p>
       <input id="zipFile" type="file" accept=".zip,application/zip">
-      <div class="tool-row">
+      <div class="row">
         <button id="openZip" type="button">Abrir ZIP</button>
-        <button id="clearZip" class="secondary" type="button">Cerrar proyecto</button>
+        <button id="clearZip" type="button">Cerrar proyecto</button>
       </div>
-      <p id="zipStatus" class="tool-status" role="status" aria-live="polite">No hay ningún proyecto abierto.</p>
-      <div id="zipResults" hidden>
-        <h3>Inventario de archivos</h3>
-        <p id="zipSummary" class="tool-muted"></p>
-        <ul id="zipFileList" class="tool-list"></ul>
-      </div>
+      <p id="zipStatus" class="status">Ningún ZIP abierto.</p>
+      <p id="zipSummary"></p>
+      <ul id="fileList"></ul>
     </section>
 
-    <section class="tool-section">
-      <h2>2. Revisión automática del proyecto</h2>
-      <p>Busca referencias locales que no existen en el ZIP, rutas duplicadas, JSON inválido, problemas estructurales básicos y patrones que podrían indicar secretos expuestos.</p>
-      <div class="tool-card">
-        <div class="tool-row">
-          <button id="staticReview" type="button" disabled>Ejecutar revisión automática</button>
-          <button id="reviewProject" type="button" disabled>Revisión automática + Nova IA</button>
-          <button id="cancelReview" class="secondary" type="button" disabled>Cancelar</button>
-          <button id="copyReport" class="secondary" type="button" disabled>Copiar informe</button>
-        </div>
-        <progress id="reviewProgress" class="tool-progress" value="0" max="100"></progress>
-        <p id="reviewProgressText" class="tool-muted">Esperando un proyecto ZIP.</p>
+    <section>
+      <h2>2. Revisión automática</h2>
+      <div class="row">
+        <button id="staticReview" disabled type="button">Revisión automática</button>
+        <button id="reviewProject" disabled type="button">Revisión automática + Nova IA</button>
+        <button id="cancelReview" disabled type="button">Cancelar</button>
+        <button id="copyReport" disabled type="button">Copiar informe</button>
       </div>
+      <progress id="progress" value="0" max="100"></progress>
+      <p id="progressText">Esperando un ZIP.</p>
     </section>
 
-    <section class="tool-section">
+    <section>
       <h2>3. Visor de archivos</h2>
-      <label for="filePath">Archivo seleccionado</label>
-      <input id="filePath" readonly placeholder="Selecciona un archivo del ZIP">
-      <label for="fileContent">Contenido del archivo</label>
-      <textarea id="fileContent" class="tool-code" spellcheck="false" placeholder="Contenido del archivo"></textarea>
-      <div class="tool-row">
-        <button id="copyFile" type="button">Copiar contenido</button>
+      <input id="filePath" readonly placeholder="Archivo seleccionado">
+      <textarea id="fileContent" rows="14" spellcheck="false" placeholder="Contenido del archivo"></textarea>
+      <div class="row">
+        <button id="copyFile" type="button">Copiar archivo</button>
         <button id="sendFileToAI" type="button">Revisar archivo con Nova IA</button>
       </div>
     </section>
 
-    <section class="tool-section">
+    <section>
       <h2>4. Programar con Nova IA</h2>
       <label for="language">Lenguaje</label>
       <select id="language">
-        <option>Java</option>
         <option>JavaScript</option>
-        <option>Android Java</option>
-        <option>HTML y CSS</option>
         <option>TypeScript</option>
+        <option>HTML y CSS</option>
+        <option>Java</option>
         <option>Python</option>
         <option>SQL</option>
         <option>Otro</option>
       </select>
-      <label for="aiTask">Qué quieres que programe o revise</label>
-      <textarea id="aiTask" rows="6" maxlength="12000" placeholder="Describe el error o el cambio solicitado."></textarea>
-      <div class="tool-row">
+      <label for="aiTask">Solicitud</label>
+      <textarea id="aiTask" rows="5" maxlength="12000" placeholder="Describe qué quieres programar o revisar."></textarea>
+      <div class="row">
         <button id="askAI" type="button">Enviar a Nova IA</button>
-        <button id="clearAI" class="secondary" type="button">Limpiar solicitud</button>
+        <button id="clearAI" type="button">Limpiar solicitud</button>
       </div>
-      <p id="aiStatus" class="tool-status" role="status" aria-live="polite">Esperando una solicitud.</p>
-      <h3>Resultado e informe</h3>
-      <pre id="aiOutput" class="tool-output">Aquí aparecerán los resultados.</pre>
+      <p id="aiStatus" class="status">Esperando solicitud.</p>
+      <h3>Informe y respuesta</h3>
+      <pre id="aiOutput">Aquí aparecerán los resultados.</pre>
       <button id="copyAI" type="button">Copiar resultado</button>
     </section>
-
-    <section class="tool-section">
-      <h2>5. Límites de la revisión</h2>
-      <ul>
-        <li>Máximo de ZIP: 25 MB.</li>
-        <li>Máximo de archivos: 1.000.</li>
-        <li>Máximo por archivo de texto: 500 KB.</li>
-        <li>Máximo de código legible: 200.000 caracteres.</li>
-        <li>Se requiere que la función Supabase <code>nova-ia</code> esté disponible para usar la revisión con IA.</li>
-        <li>Los resultados automáticos son indicios; deben verificarse antes de modificar código.</li>
-        <li>Esta página no publica ni modifica automáticamente archivos en GitHub.</li>
-      </ul>
-    </section>
-  </section>
-  <p><a href="./admin.html">Volver al panel administrativo</a></p>
+  </div>
 </main>
 
 <script type="module">
-  import { supabase } from "./admin-core.js";
+import { supabase } from "./admin-core.js";
 
-  const $ = selector => document.querySelector(selector);
-  const MAX_ZIP = 25 * 1024 * 1024;
-  const MAX_FILES = 1000;
-  const MAX_FILE_BYTES = 500 * 1024;
-  const MAX_TOTAL_CHARS = 200000;
-  const CHUNK_SIZE = 6000;
-  const MAX_AI_REQUEST = 30000;
+const $ = s => document.querySelector(s);
+const MAX_ZIP = 25 * 1024 * 1024;
+const MAX_FILES = 1000;
+const MAX_FILE = 500 * 1024;
+const MAX_CHARS = 200000;
+const MAX_REQUEST = 30000;
+const TEXT_EXT = new Set([
+  "txt","md","json","xml","yaml","yml","toml","html","htm","css","scss",
+  "sass","js","mjs","cjs","ts","tsx","jsx","java","kt","kts","gradle",
+  "properties","py","sh","bat","ps1","sql","csv","c","h","cpp","hpp",
+  "cs","go","rs","php","rb","dart","swift","vue","svelte","ini","conf",
+  "cfg","lock","gitignore","gitattributes","editorconfig"
+]);
 
-  const TEXT_EXT = new Set([
-    "txt","md","rst","json","jsonc","xml","yaml","yml","toml",
-    "html","htm","css","scss","sass","less","js","mjs","cjs",
-    "ts","tsx","jsx","java","kt","kts","gradle","properties",
-    "py","sh","bash","bat","ps1","sql","csv","c","h","cpp",
-    "hpp","cs","go","rs","php","rb","dart","vue","svelte",
-    "swift","ini","conf","cfg","lock","editorconfig","gitignore",
-    "gitattributes","dockerfile","makefile"
-  ]);
+let zip = null;
+let running = false;
+let cancelRequested = false;
+let lastReport = "";
 
-  let zip = null;
-  let running = false;
-  let cancelRequested = false;
-  let lastReport = "";
+function isAdmin() {
+  return document.body.dataset.adminAuthorized === "true";
+}
+function setStatus(text) { $("#status").textContent = text; }
+function setAIStatus(text) { $("#aiStatus").textContent = text; }
+function setProgress(n, text) {
+  $("#progress").value = Math.min(100, Math.max(0, n));
+  $("#progressText").textContent = text;
+}
+function checkCancel() {
+  if (cancelRequested) throw new Error("Revisión cancelada.");
+}
+function extension(path) {
+  const name = path.split("/").pop().toLowerCase();
+  if (["dockerfile","makefile","readme","license"].includes(name)) return name;
+  if (name.startsWith(".") && !name.slice(1).includes(".")) return name.slice(1);
+  const i = name.lastIndexOf(".");
+  return i < 0 ? "" : name.slice(i + 1);
+}
+function isTextFile(path) {
+  return TEXT_EXT.has(extension(path)) ||
+    ["dockerfile","makefile","readme","license"].includes(path.split("/").pop().toLowerCase());
+}
+function isText(bytes) {
+  for (let i = 0; i < Math.min(bytes.length, 8192); i++) {
+    if (bytes[i] === 0) return false;
+  }
+  return true;
+}
+function normalize(path) {
+  const parts = [];
+  for (const p of path.replace(/\\/g, "/").split("/")) {
+    if (!p || p === ".") continue;
+    if (p === "..") parts.pop();
+    else parts.push(p);
+  }
+  return parts.join("/");
+}
+function lineAt(content, index) {
+  return content.slice(0, index).split("\n").length;
+}
+function addFinding(list, level, path, line, message, evidence = "") {
+  list.push({level,path,line,message,evidence});
+}
+function findRefs(path, content) {
+  const refs = [];
+  const ext = extension(path);
+  let patterns = [];
 
-  function isAdmin() {
-    return document.body.dataset.adminAuthorized === "true";
+  if (["html","htm"].includes(ext)) {
+    patterns = [/\b(?:src|href|action|poster)\s*=\s*["']([^"'#]+)["']/gi];
+  } else if (["css","scss","sass"].includes(ext)) {
+    patterns = [/url\(\s*["']?([^"')]+)["']?\s*\)/gi];
+  } else if (["js","mjs","cjs","ts","tsx","jsx"].includes(ext)) {
+    patterns = [
+      /\bimport\s+(?:[^"'()]*?\s+from\s*)?["']([^"']+)["']/g,
+      /\bexport\s+[^"'()]*?\s+from\s*["']([^"']+)["']/g,
+      /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
+      /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g
+    ];
   }
 
-  function statusZip(text) { $("#zipStatus").textContent = text; }
-  function statusAI(text) { $("#aiStatus").textContent = text; }
-
-  function ext(path) {
-    const name = path.split("/").pop().toLowerCase();
-    if (["dockerfile","makefile","license","readme"].includes(name)) return name;
-    if ([".gitignore",".gitattributes",".editorconfig"].includes(name)) return name.slice(1);
-    const i = name.lastIndexOf(".");
-    return i < 0 ? "" : name.slice(i + 1);
-  }
-
-  function textFile(path) {
-    const name = path.split("/").pop().toLowerCase();
-    return TEXT_EXT.has(ext(path)) ||
-      ["dockerfile","makefile","license","readme",".gitignore",".gitattributes",".editorconfig"].includes(name);
-  }
-
-  function isText(bytes) {
-    for (let i = 0; i < Math.min(bytes.length, 8192); i++) {
-      if (bytes[i] === 0) return false;
-    }
-    return true;
-  }
-
-  function setProgress(value, message) {
-    $("#reviewProgress").value = Math.max(0, Math.min(100, value));
-    $("#reviewProgressText").textContent = message;
-  }
-
-  function setRunning(value) {
-    running = value;
-    $("#openZip").disabled = value;
-    $("#clearZip").disabled = value;
-    $("#staticReview").disabled = value || !zip || !isAdmin();
-    $("#reviewProject").disabled = value || !zip || !isAdmin();
-    $("#cancelReview").disabled = !value;
-    $("#askAI").disabled = value;
-    $("#sendFileToAI").disabled = value;
-    $("#copyReport").disabled = value || !lastReport;
-  }
-
-  function checkCancel() {
-    if (cancelRequested) throw new Error("Revisión cancelada por el administrador.");
-  }
-
-  function normalizePath(path) {
-    const parts = [];
-    for (const part of path.replace(/\\/g, "/").split("/")) {
-      if (!part || part === ".") continue;
-      if (part === "..") parts.pop();
-      else parts.push(part);
-    }
-    return parts.join("/");
-  }
-
-  function clearProject() {
-    if (running) {
-      statusZip("Cancela la revisión antes de cerrar el proyecto.");
-      return;
-    }
-    zip = null;
-    $("#zipFile").value = "";
-    $("#zipResults").hidden = true;
-    $("#zipFileList").replaceChildren();
-    $("#zipSummary").textContent = "";
-    $("#filePath").value = "";
-    $("#fileContent").value = "";
-    $("#staticReview").disabled = true;
-    $("#reviewProject").disabled = true;
-    lastReport = "";
-    $("#copyReport").disabled = true;
-    setProgress(0, "Esperando un proyecto ZIP.");
-    statusZip("No hay ningún proyecto abierto.");
-  }
-
-  async function openZip() {
-    if (!isAdmin()) return statusZip("Acceso denegado.");
-    if (running) return statusZip("Cancela la revisión actual primero.");
-    if (!window.JSZip) return statusZip("No se pudo cargar el lector ZIP.");
-
-    const file = $("#zipFile").files?.[0];
-    if (!file) return statusZip("Selecciona un archivo ZIP.");
-    if (file.size > MAX_ZIP) return statusZip("El ZIP supera el límite de 25 MB.");
-
-    zip = null;
-    $("#zipResults").hidden = true;
-    $("#zipFileList").replaceChildren();
-    statusZip("Abriendo ZIP...");
-
-    try {
-      const loaded = await window.JSZip.loadAsync(file, {
-        checkCRC32: false,
-        createFolders: false
-      });
-      const entries = Object.values(loaded.files).filter(item => !item.dir);
-
-      if (entries.length > MAX_FILES) {
-        return statusZip(`El ZIP contiene ${entries.length} archivos; el máximo es ${MAX_FILES}.`);
-      }
-
-      zip = loaded;
-      const list = $("#zipFileList");
-      let readable = 0;
-
-      for (const entry of entries) {
-        const li = document.createElement("li");
-        const name = document.createElement("span");
-        name.textContent = entry.name;
-        li.appendChild(name);
-
-        if (textFile(entry.name)) {
-          readable++;
-          const button = document.createElement("button");
-          button.type = "button";
-          button.textContent = "Leer";
-          button.addEventListener("click", () => readFile(entry.name));
-          li.appendChild(button);
-        } else {
-          const note = document.createElement("small");
-          note.textContent = "Tipo no compatible";
-          li.appendChild(note);
-        }
-        list.appendChild(li);
-      }
-
-      $("#zipSummary").textContent =
-        `${entries.length} archivos en total; ${readable} con extensiones compatibles.`;
-      $("#zipResults").hidden = false;
-      $("#staticReview").disabled = !isAdmin();
-      $("#reviewProject").disabled = !isAdmin();
-      statusZip("ZIP abierto. Los archivos no se ejecutan.");
-      setProgress(0, "Proyecto preparado.");
-    } catch {
-      zip = null;
-      statusZip("No se pudo abrir el ZIP. Comprueba que el archivo no esté dañado.");
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(content))) {
+      refs.push({value:match[1],line:lineAt(content,match.index)});
     }
   }
+  return refs;
+}
+function isExternal(value) {
+  return /^(?:https?:|mailto:|tel:|data:|blob:|javascript:|\/\/|#)/i.test(value.trim());
+}
+function candidates(from, target) {
+  let decoded = target;
+  try { decoded = decodeURIComponent(target); } catch {}
+  const clean = decoded.split(/[?#]/)[0];
+  if (!clean) return [];
+  const base = normalize(clean.startsWith("/")
+    ? clean.slice(1)
+    : from.split("/").slice(0,-1).concat(clean).join("/"));
+  const list = [base];
+  if (!/\.[a-z0-9]+$/i.test(base)) {
+    list.push(base+".js",base+".mjs",base+".ts",base+".css",base+".html",
+      base+".json",base+"/index.js",base+"/index.html");
+  }
+  return list;
+}
 
-  async function readFile(path) {
-    if (!isAdmin() || !zip) return;
-    const entry = zip.file(path);
-    if (!entry) return statusZip("No se encontró el archivo.");
+async function readProject() {
+  if (!zip) throw new Error("Abre primero un ZIP.");
+  const entries = Object.values(zip.files).filter(f => !f.dir);
+  if (entries.length > MAX_FILES) throw new Error("El ZIP supera 1.000 archivos.");
 
-    try {
-      const bytes = await entry.async("uint8array");
-      if (bytes.byteLength > MAX_FILE_BYTES) {
-        return statusZip("El archivo supera el límite de 500 KB.");
-      }
-      if (!isText(bytes)) return statusZip("El archivo parece binario.");
+  const files = [];
+  const omitted = [];
+  let chars = 0;
 
-      $("#filePath").value = path;
-      $("#fileContent").value = new TextDecoder().decode(bytes);
-      statusZip(`Archivo cargado: ${path}.`);
-    } catch {
-      statusZip("No se pudo leer el archivo.");
+  for (let i=0;i<entries.length;i++) {
+    checkCancel();
+    const entry = entries[i];
+    setProgress(Math.round(i / Math.max(entries.length,1) * 15),
+      `Leyendo ${i+1}/${entries.length}: ${entry.name}`);
+
+    if (!isTextFile(entry.name)) {
+      omitted.push({path:entry.name,reason:"Formato no compatible"});
+      continue;
+    }
+
+    const bytes = await entry.async("uint8array");
+    if (bytes.length > MAX_FILE) {
+      omitted.push({path:entry.name,reason:"Supera 500 KB"});
+      continue;
+    }
+    if (!isText(bytes)) {
+      omitted.push({path:entry.name,reason:"Archivo binario"});
+      continue;
+    }
+
+    const content = new TextDecoder("utf-8",{fatal:false}).decode(bytes);
+    chars += content.length;
+    if (chars > MAX_CHARS) throw new Error("El texto del proyecto supera 200.000 caracteres. Divide el ZIP.");
+    files.push({path:entry.name,content});
+  }
+
+  if (!files.length) throw new Error("No hay archivos de texto compatibles.");
+  return {entries,files,omitted,chars};
+}
+
+function scanProject(project) {
+  const findings = [];
+  const exact = new Set(project.entries.map(e => normalize(e.name)));
+  const lower = new Map();
+
+  for (const path of exact) {
+    const key = path.toLowerCase();
+    if (!lower.has(key)) lower.set(key,[]);
+    lower.get(key).push(path);
+  }
+  for (const paths of lower.values()) {
+    if (paths.length > 1) {
+      addFinding(findings,"ALTO",paths.join(" | "),0,
+        "Rutas duplicadas o que difieren por mayúsculas/minúsculas.");
     }
   }
 
-  async function readProject() {
-    if (!zip) throw new Error("Abre un ZIP primero.");
-    const entries = Object.values(zip.files).filter(e => !e.dir);
-    if (entries.length > MAX_FILES) throw new Error("El ZIP supera el máximo de archivos.");
+  for (const file of project.files) {
+    checkCancel();
+    const path = normalize(file.path);
+    const content = file.content;
+    const ext = extension(path);
 
-    const files = [];
-    const omitted = [];
-    let chars = 0;
-
-    for (let i = 0; i < entries.length; i++) {
-      checkCancel();
-      const entry = entries[i];
-      setProgress(Math.round((i / Math.max(1, entries.length)) * 15),
-        `Leyendo archivos ${i + 1}/${entries.length}...`);
-
-      if (!textFile(entry.name)) {
-        omitted.push({ path: entry.name, reason: "Formato no incluido" });
-        continue;
+    if (ext === "json") {
+      try { JSON.parse(content); }
+      catch (e) {
+        addFinding(findings,"ALTO",path,0,"JSON inválido.",String(e.message || e));
       }
-
-      const bytes = await entry.async("uint8array");
-      if (bytes.byteLength > MAX_FILE_BYTES) {
-        omitted.push({ path: entry.name, reason: "Supera 500 KB" });
-        continue;
-      }
-      if (!isText(bytes)) {
-        omitted.push({ path: entry.name, reason: "Contenido binario" });
-        continue;
-      }
-
-      const content = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-      chars += content.length;
-      if (chars > MAX_TOTAL_CHARS) {
-        throw new Error("El código legible supera 200.000 caracteres. Divide el proyecto en ZIP más pequeños.");
-      }
-      files.push({ path: entry.name, content });
     }
 
-    if (!files.length) throw new Error("No se encontraron archivos de texto compatibles.");
-    return { entries, files, omitted, chars };
-  }
-
-  function findReferences(path, content) {
-    const refs = [];
-    const extension = ext(path);
-
-    if (["html","htm"].includes(extension)) {
-      const re = /\b(?:src|href|action|poster)\s*=\s*["']([^"'#]+)["']/gi;
+    if (["html","htm"].includes(ext)) {
+      const ids = new Map();
+      const re = /\bid\s*=\s*["']([^"']+)["']/gi;
       let m;
-      while ((m = re.exec(content))) refs.push({ value: m[1], line: lineAt(content, m.index) });
-    }
-
-    if (["css","scss","sass","less"].includes(extension)) {
-      const re = /url\(\s*["']?([^"')]+)["']?\s*\)/gi;
-      let m;
-      while ((m = re.exec(content))) refs.push({ value: m[1], line: lineAt(content, m.index) });
-    }
-
-    if (["js","mjs","cjs","ts","tsx","jsx"].includes(extension)) {
-      const patterns = [
-        /\bimport\s+(?:[^"'()]*?\s+from\s*)?["']([^"']+)["']/g,
-        /\bexport\s+[^"'()]*?\s+from\s*["']([^"']+)["']/g,
-        /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
-        /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g
-      ];
-      for (const re of patterns) {
-        let m;
-        while ((m = re.exec(content))) refs.push({ value: m[1], line: lineAt(content, m.index) });
+      while ((m=re.exec(content))) {
+        if (ids.has(m[1])) {
+          addFinding(findings,"MEDIO",path,lineAt(content,m.index),
+            `ID HTML duplicado: ${m[1]}.`);
+        } else ids.set(m[1],true);
+      }
+      const opened = (content.match(/<script\b/gi)||[]).length;
+      const closed = (content.match(/<\/script\s*>/gi)||[]).length;
+      if (opened !== closed) {
+        addFinding(findings,"ALTO",path,0,"Etiquetas script sin pareja.");
       }
     }
 
-    return refs;
-  }
-
-  function lineAt(text, index) {
-    return text.slice(0, index).split("\n").length;
-  }
-
-  function localReference(value) {
-    const v = value.trim();
-    if (!v || v.startsWith("#") || v.startsWith("//") ||
-        /^(?:https?:|mailto:|tel:|data:|blob:|javascript:)/i.test(v)) return false;
-    return true;
-  }
-
-  function possibleTargets(from, value, inventory) {
-    const clean = decodeURIComponentSafe(value.split(/[?#]/)[0]);
-    if (!clean) return [];
-    const base = clean.startsWith("/")
-      ? normalizePath(clean)
-      : normalizePath(from.split("/").slice(0, -1).concat(clean).join("/"));
-
-    const candidates = [base];
-    if (!/\.[a-z0-9]+$/i.test(base)) {
-      candidates.push(base + ".js", base + ".mjs", base + ".ts",
-        base + ".css", base + ".html", base + ".json");
-      candidates.push(base + "/index.js", base + "/index.html");
-    }
-    return candidates.filter(p => inventory.has(p) || inventory.has(p.toLowerCase()));
-  }
-
-  function decodeURIComponentSafe(value) {
-    try { return decodeURIComponent(value); } catch { return value; }
-  }
-
-  function staticScan(files, entries, omitted) {
-    const findings = [];
-    const inventory = new Set(entries.map(e => normalizePath(e.name)));
-    const lowerPaths = new Map();
-
-    function add(level, path, line, message, evidence = "") {
-      findings.push({ level, path, line, message, evidence });
-    }
-
-    for (const path of inventory) {
-      const low = path.toLowerCase();
-      if (!lowerPaths.has(low)) lowerPaths.set(low, []);
-      lowerPaths.get(low).push(path);
-    }
-
-    for (const [low, paths] of lowerPaths) {
-      if (paths.length > 1) {
-        add("ALTO", paths.join(" | "), 0,
-          "Rutas duplicadas o que solo difieren en mayúsculas/minúsculas.",
-          low);
+    if (["css","scss","sass"].includes(ext)) {
+      if ((content.match(/\{/g)||[]).length !== (content.match(/\}/g)||[]).length) {
+        addFinding(findings,"MEDIO",path,0,"Llaves CSS desequilibradas.");
       }
     }
 
-    const known = new Set();
-    for (const path of inventory) {
-      known.add(path);
-      known.add(path.toLowerCase());
+    if (/\b(?:TODO|FIXME|XXX)\b/.test(content)) {
+      addFinding(findings,"BAJO",path,0,"El archivo contiene marcadores de tareas pendientes.");
     }
 
-    for (const file of files) {
-      checkCancel();
-      const path = normalizePath(file.path);
-      const content = file.content;
-      const extension = ext(path);
-
-      if (extension === "json") {
-        try { JSON.parse(content); }
-        catch (e) { add("ALTO", path, 0, "JSON inválido.", String(e.message || e)); }
-      }
-
-      if (["html","htm"].includes(extension)) {
-        const ids = [...content.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)].map(m => m[1]);
-        const seenIds = new Set();
-        for (const id of ids) {
-          if (seenIds.has(id)) add("MEDIO", path, lineAt(content, content.indexOf(`id="${id}"`)),
-            `ID HTML repetido: ${id}.`);
-          seenIds.add(id);
-        }
-
-        const opens = (content.match(/<script\b/gi) || []).length;
-        const closes = (content.match(/<\/script\s*>/gi) || []).length;
-        if (opens !== closes) add("ALTO", path, 0,
-          "La cantidad de etiquetas script abiertas y cerradas no coincide.");
-      }
-
-      if (["css","scss","sass","less"].includes(extension)) {
-        const opens = (content.match(/\{/g) || []).length;
-        const closes = (content.match(/\}/g) || []).length;
-        if (opens !== closes) add("MEDIO", path, 0,
-          "Las llaves CSS no están equilibradas; puede haber un bloque incompleto.");
-      }
-
-      if (["js","mjs","cjs","ts","tsx","jsx","java","kt","py","php","go","rs","sql","json","yaml","yml","toml","properties"].includes(extension)) {
-        const conflict = content.match(/^(?:<<<<<<<|=======|>>>>>>>)(?:.*)$/m);
-        if (conflict) add("ALTO", path, lineAt(content, content.indexOf(conflict[0])),
-          "Posibles marcadores de conflicto de Git.", conflict[0]);
-      }
-
-      const secretPatterns = [
-        { re: /\bAIza[0-9A-Za-z_-]{30,}\b/g, label: "Posible clave de API de Google" },
-        { re: /\bsk_live_[0-9A-Za-z]{16,}\b/g, label: "Posible clave privada de pago" },
-        { re: /\bAKIA[0-9A-Z]{16}\b/g, label: "Posible identificador de clave AWS" },
-        { re: /\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b/g, label: "Posible token de GitHub" },
-        { re: /\bservice_role\b/g, label: "Referencia a service_role; verificar que no sea una clave real expuesta" },
-        { re: /\b(?:password|passwd|api[_-]?key|secret|access[_-]?token)\s*[:=]\s*["'][^"'\r\n]{8,}["']/gi,
-          label: "Asignación que podría contener una credencial" }
-      ];
-
-      for (const pattern of secretPatterns) {
-        let match;
-        while ((match = pattern.re.exec(content))) {
-          add("ALTO", path, lineAt(content, match.index),
-            pattern.label + ". Confirmar manualmente; puede ser un falso positivo.",
-            match[0].slice(0, 5) + "…");
-        }
-      }
-
-      const refs = findReferences(path, content);
-      for (const ref of refs) {
-        if (!localReference(ref.value)) continue;
-        const value = decodeURIComponentSafe(ref.value.trim().split(/[?#]/)[0]);
-        if (!value) continue;
-
-        const resolved = value.startsWith("/")
-          ? normalizePath(value)
-          : normalizePath(path.split("/").slice(0, -1).concat(value).join("/"));
-
-        if (value.startsWith("/") && (known.has(resolved) || known.has(resolved.toLowerCase()))) continue;
-        if (possibleTargets(path, value, known).length) continue;
-
-        // No marcar referencias virtuales o de plantillas como archivos inexistentes.
-        if (value.startsWith("{") || value.startsWith("$") || value.startsWith("@")) continue;
-
-        add("MEDIO", path, ref.line,
-          "Referencia local que no coincide con un archivo del ZIP.",
-          ref.value);
-      }
-
-      const todo = /\b(TODO|FIXME|XXX)\b/g;
-      let t;
-      while ((t = todo.exec(content))) {
-        add("BAJO", path, lineAt(content, t.index),
-          `Marcador pendiente: ${t[1]}.`, content.slice(t.index, t.index + 100).split("\n")[0]);
-      }
-    }
-
-    return {
-      findings,
-      omitted,
-      totalFiles: entries.length,
-      analyzedFiles: files.length,
-      totalChars: files.reduce((n, f) => n + f.content.length, 0)
-    };
-  }
-
-  function renderStaticReport(report) {
-    const counts = { CRÍTICO: 0, ALTO: 0, MEDIO: 0, BAJO: 0 };
-    for (const f of report.findings) counts[f.level] = (counts[f.level] || 0) + 1;
-
-    const lines = [
-      "INFORME DE REVISIÓN AUTOMÁTICA ESTÁTICA",
-      "",
-      `Archivos del ZIP: ${report.totalFiles}`,
-      `Archivos de texto analizados: ${report.analyzedFiles}`,
-      `Archivos omitidos: ${report.omitted.length}`,
-      `Caracteres analizados: ${report.totalChars}`,
-      `Hallazgos: ${report.findings.length}`,
-      `Altos: ${counts.ALTO || 0} | Medios: ${counts.MEDIO || 0} | Bajos: ${counts.BAJO || 0}`,
-      "",
-      "HALLAZGOS"
+    const secretPatterns = [
+      [/\bAIza[0-9A-Za-z_-]{30,}\b/g,"Posible clave API de Google"],
+      [/\bsk_live_[0-9A-Za-z]{16,}\b/g,"Posible clave privada de pago"],
+      [/\bAKIA[0-9A-Z]{16}\b/g,"Posible clave AWS"],
+      [/\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b/g,"Posible token de GitHub"],
+      [/\b(?:password|passwd|api[_-]?key|secret|access[_-]?token)\s*[:=]\s*["'][^"'\r\n]{8,}["']/gi,
+        "Posible credencial asignada directamente"]
     ];
 
-    if (!report.findings.length) {
-      lines.push("No se encontraron problemas con las comprobaciones disponibles. Esto no demuestra que el proyecto esté libre de errores.");
-    } else {
-      report.findings.forEach((f, i) => {
-        lines.push(
-          `${i + 1}. [${f.level}] ${f.path}${f.line ? `:${f.line}` : ""}`,
-          `   ${f.message}`,
-          f.evidence ? `   Evidencia: ${f.evidence}` : ""
-        );
-      });
+    for (const [pattern,label] of secretPatterns) {
+      let m;
+      while ((m=pattern.exec(content))) {
+        addFinding(findings,"ALTO",path,lineAt(content,m.index),
+          label+"; confirmar manualmente.",m[0].slice(0,4)+"…");
+      }
     }
 
-    lines.push("", "ARCHIVOS OMITIDOS");
-    if (!report.omitted.length) lines.push("Ninguno.");
-    else report.omitted.forEach(f => lines.push(`- ${f.path}: ${f.reason}`));
+    for (const ref of findRefs(path,content)) {
+      if (isExternal(ref.value)) continue;
+      const value = ref.value.trim().split(/[?#]/)[0];
+      if (!value || value.startsWith("{") || value.startsWith("$")) continue;
 
-    lines.push(
-      "",
-      "LIMITACIONES",
-      "- Comprobaciones estáticas, no ejecución ni compilación.",
-      "- Las referencias detectadas pueden ser dinámicas o válidas por configuración.",
-      "- Los patrones de secretos pueden generar falsos positivos.",
-      "- Revisa manualmente cada hallazgo antes de cambiar el proyecto."
-    );
-    return lines.filter(line => line !== undefined).join("\n");
+      const possible = candidates(path,value);
+      const exists = possible.some(p => exact.has(p) || lower.has(p.toLowerCase()));
+      if (!exists) {
+        addFinding(findings,"MEDIO",path,ref.line,
+          "Referencia local no encontrada en el ZIP.",ref.value);
+      }
+    }
   }
 
-  async function askNova(message) {
-    if (!isAdmin()) throw new Error("Acceso administrativo no autorizado.");
-    if (message.length > MAX_AI_REQUEST) throw new Error("La solicitud supera 30.000 caracteres.");
+  return findings;
+}
 
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !sessionData?.session) {
-      throw new Error("La sesión ha caducado. Inicia sesión de nuevo.");
+function formatReport(project, findings) {
+  const count = {ALTO:0,MEDIO:0,BAJO:0};
+  findings.forEach(f => count[f.level]=(count[f.level]||0)+1);
+  const lines = [
+    "INFORME DE REVISIÓN ESTÁTICA",
+    "",
+    `Archivos ZIP: ${project.entries.length}`,
+    `Archivos de texto analizados: ${project.files.length}`,
+    `Archivos omitidos: ${project.omitted.length}`,
+    `Caracteres analizados: ${project.chars}`,
+    `Hallazgos: ${findings.length}`,
+    `Altos: ${count.ALTO} | Medios: ${count.MEDIO} | Bajos: ${count.BAJO}`,
+    "",
+    "HALLAZGOS"
+  ];
+
+  if (!findings.length) lines.push("No se detectaron problemas con estas comprobaciones.");
+  findings.forEach((f,i) => {
+    lines.push(`${i+1}. [${f.level}] ${f.path}${f.line?":"+f.line:""}`,
+      `   ${f.message}`,f.evidence?`   Evidencia: ${f.evidence}`:"");
+  });
+
+  lines.push("","ARCHIVOS OMITIDOS");
+  if (!project.omitted.length) lines.push("Ninguno.");
+  project.omitted.forEach(f => lines.push(`- ${f.path}: ${f.reason}`));
+  lines.push("","LIMITACIONES",
+    "Análisis estático: no se ejecutó, compiló ni probó el proyecto.",
+    "Las rutas dinámicas y los patrones de secretos pueden producir falsos positivos.");
+  return lines.filter(x => x !== "").join("\n");
+}
+
+async function askNova(message) {
+  if (!isAdmin()) throw new Error("Acceso administrativo denegado.");
+  if (message.length > MAX_REQUEST) throw new Error("La petición supera 30.000 caracteres.");
+
+  const {data:sessionData,error:sessionError} = await supabase.auth.getSession();
+  if (sessionError || !sessionData?.session) {
+    throw new Error("Sesión no válida. Inicia sesión de nuevo.");
+  }
+
+  const {data,error} = await supabase.functions.invoke("nova-ia",{body:{message}});
+  if (error) throw new Error("Error al conectar con la función nova-ia.");
+  if (data?.error) throw new Error(String(data.error));
+  if (typeof data?.answer !== "string" || !data.answer.trim()) {
+    throw new Error("Nova IA no devolvió una respuesta válida.");
+  }
+  return data.answer.trim();
+}
+
+async function runStatic() {
+  if (!zip || !isAdmin() || running) return;
+  running = true;
+  cancelRequested = false;
+  $("#staticReview").disabled = true;
+  $("#reviewProject").disabled = true;
+  $("#cancelReview").disabled = false;
+  lastReport = "";
+
+  try {
+    const project = await readProject();
+    checkCancel();
+    const findings = scanProject(project);
+    lastReport = formatReport(project,findings);
+    $("#aiOutput").textContent = lastReport;
+    $("#copyReport").disabled = false;
+    setProgress(100,"Revisión automática terminada.");
+    setAIStatus("Revisión automática terminada.");
+  } catch (e) {
+    setAIStatus(e.message || "Error en la revisión.");
+  } finally {
+    running = false;
+    $("#staticReview").disabled = !zip || !isAdmin();
+    $("#reviewProject").disabled = !zip || !isAdmin();
+    $("#cancelReview").disabled = true;
+  }
+}
+
+async function runFullReview() {
+  if (!zip || !isAdmin() || running) return;
+  running = true;
+  cancelRequested = false;
+  $("#staticReview").disabled = true;
+  $("#reviewProject").disabled = true;
+  $("#cancelReview").disabled = false;
+  lastReport = "";
+
+  try {
+    const project = await readProject();
+    checkCancel();
+    const findings = scanProject(project);
+    const staticReport = formatReport(project,findings);
+    $("#aiOutput").textContent = staticReport+"\n\nRevisión de Nova IA en curso...";
+    const chunks = [];
+
+    for (const file of project.files) {
+      for (let start=0;start<file.content.length || start===0;start+=6000) {
+        chunks.push({
+          path:file.path,
+          content:file.content.slice(start,start+6000),
+          part:Math.floor(start/6000)+1,
+          total:Math.max(1,Math.ceil(file.content.length/6000))
+        });
+        if (!file.content.length) break;
+      }
     }
 
-    const { data, error } = await supabase.functions.invoke("nova-ia", {
-      body: { message }
-    });
-
-    if (error) throw new Error("No se pudo conectar con Nova IA. Comprueba la función Supabase nova-ia.");
-    if (data?.error) throw new Error(String(data.error));
-    if (typeof data?.answer !== "string" || !data.answer.trim()) {
-      throw new Error("Nova IA no devolvió una respuesta válida.");
+    const groups = [];
+    let group = [];
+    let size = 0;
+    for (const chunk of chunks) {
+      const n = chunk.path.length+chunk.content.length+100;
+      if (group.length && size+n>6800) {
+        groups.push(group);
+        group=[];
+        size=0;
+      }
+      group.push(chunk);
+      size+=n;
     }
-    return data.answer.trim();
-  }
+    if (group.length) groups.push(group);
 
-  function detectLanguage(path) {
-    const e = ext(path);
-    if (["java","kt","kts","gradle"].includes(e)) return "Java";
-    if (["js","mjs","cjs","jsx"].includes(e)) return "JavaScript";
-    if (["ts","tsx"].includes(e)) return "TypeScript";
-    if (["html","htm","css","scss","sass"].includes(e)) return "HTML y CSS";
-    if (e === "py") return "Python";
-    if (e === "sql") return "SQL";
-    return "Otro";
-  }
+    const results = [];
+    for (let i=0;i<groups.length;i++) {
+      checkCancel();
+      setProgress(15+Math.round(i/Math.max(1,groups.length)*70),
+        `Analizando bloque ${i+1}/${groups.length}.`);
+      const source = groups[i].map(c =>
+        `ARCHIVO: ${c.path} (${c.part}/${c.total})\n${c.content}`
+      ).join("\n\n---\n\n");
 
-  async function askAboutFile() {
-    const path = $("#filePath").value;
-    const content = $("#fileContent").value;
-    if (!path || !content.trim()) return statusAI("Selecciona un archivo de texto primero.");
-
-    $("#language").value = detectLanguage(path);
-    $("#aiTask").value =
-      "Revisa estáticamente este archivo. Identifica defectos concretos, riesgos y correcciones. " +
-      "Distingue hechos de sospechas. No afirmes haber ejecutado el código. Si propones cambios, " +
-      "devuelve el archivo completo cuando sea razonable.\n\nArchivo: " + path +
-      "\n\nContenido:\n" + content.slice(0, 9000);
-    await sendRequest();
-  }
-
-  async function sendRequest() {
-    if (!isAdmin()) return statusAI("Acceso denegado.");
-    const language = $("#language").value;
-    const task = $("#aiTask").value.trim();
-
-    if (!task) return statusAI("Escribe una solicitud.");
-    if (task.length > 12000) return statusAI("La solicitud supera 12.000 caracteres.");
-
-    $("#askAI").disabled = true;
-    $("#sendFileToAI").disabled = true;
-    statusAI("Enviando solicitud a Nova IA...");
-    $("#aiOutput").textContent = "Nova IA está preparando la respuesta.";
-
-    try {
       const answer = await askNova(
-        "Eres el asistente de programación de Nova Apps. Lenguaje: " + language +
-        ". Responde en español, entrega rutas y código completo cuando corresponda. " +
-        "No afirmes haber ejecutado, compilado, guardado o publicado código si no lo has hecho.\n\n" + task
+        "Revisa estáticamente este bloque de proyecto. Busca defectos concretos, " +
+        "riesgos de seguridad, fallos lógicos, referencias y problemas de integración. " +
+        "Prioriza ALTO, MEDIO y BAJO. Indica ruta, evidencia, impacto y corrección. " +
+        "No inventes archivos ni afirmes haber ejecutado pruebas. Responde en español.\n\n"+
+        `BLOQUE ${i+1}/${groups.length}\n\n${source}`
       );
-      $("#aiOutput").textContent = answer;
-      lastReport = answer;
-      $("#copyReport").disabled = false;
-      statusAI("Respuesta recibida.");
-    } catch (error) {
-      statusAI(error.message || "Error al consultar Nova IA.");
-    } finally {
-      $("#askAI").disabled = false;
-      $("#sendFileToAI").disabled = false;
+      results.push(`BLOQUE ${i+1}/${groups.length}\n${answer}`);
+      $("#aiOutput").textContent = staticReport+"\n\n"+results.join("\n\n");
     }
-  }
 
-  async function staticReview() {
-    if (!isAdmin() || !zip) return statusAI("Abre un ZIP y verifica tu acceso administrativo.");
-    if (running) return;
+    checkCancel();
+    const summary = await askNova(
+      "Consolida los hallazgos de esta revisión estática. Deduplica, separa riesgos " +
+      "altos, medios y bajos, explica problemas de integración y ordena las correcciones " +
+      "por prioridad. No inventes defectos ni afirmes haber ejecutado pruebas.\n\n"+
+      results.join("\n\n").slice(0,14000)
+    );
 
+    checkCancel();
+    lastReport = staticReport+
+      "\n\n==============================\nINFORME CONSOLIDADO DE NOVA IA\n==============================\n\n"+
+      summary+
+      "\n\nNo se ejecutó, compiló ni probó el proyecto.";
+    $("#aiOutput").textContent = lastReport;
+    $("#copyReport").disabled = false;
+    setProgress(100,"Revisión completa.");
+    setAIStatus("Revisión automática y revisión con Nova IA terminadas.");
+  } catch (e) {
+    setAIStatus(e.message || "La revisión no pudo completarse.");
+    $("#aiOutput").textContent += "\n\nAVISO: "+(e.message || "Revisión incompleta.");
+  } finally {
+    running = false;
     cancelRequested = false;
-    setRunning(true);
-    lastReport = "";
-    statusAI("Ejecutando comprobaciones automáticas...");
-    $("#aiOutput").textContent = "Analizando estructura y referencias...";
-    try {
-      const project = await readProject();
-      checkCancel();
-      const report = staticScan(project.files, project.entries, project.omitted);
-      lastReport = renderStaticReport(report);
-      $("#aiOutput").textContent = lastReport;
-      $("#copyReport").disabled = false;
-      statusAI("Revisión automática terminada.");
-      setProgress(100, "Comprobaciones automáticas terminadas. Verifica los hallazgos.");
-    } catch (error) {
-      statusAI(error.message || "No se pudo completar la revisión.");
-      setProgress($("#reviewProgress").value, "Revisión incompleta.");
-    } finally {
-      setRunning(false);
-    }
+    $("#staticReview").disabled = !zip || !isAdmin();
+    $("#reviewProject").disabled = !zip || !isAdmin();
+    $("#cancelReview").disabled = true;
   }
+}
 
-  async function fullReview() {
-    if (!isAdmin() || !zip) return statusAI("Abre un ZIP y verifica tu acceso administrativo.");
-    if (running) return;
+async function sendRequest() {
+  if (!isAdmin()) return setAIStatus("Acceso denegado.");
+  const task = $("#aiTask").value.trim();
+  if (!task) return setAIStatus("Escribe una solicitud.");
+  if (task.length>12000) return setAIStatus("Máximo 12.000 caracteres.");
 
-    cancelRequested = false;
-    setRunning(true);
-    lastReport = "";
-    $("#aiOutput").textContent = "Preparando revisión automática y revisión con Nova IA...";
-    statusAI("Leyendo proyecto...");
-
-    try {
-      const project = await readProject();
-      checkCancel();
-
-      const staticReport = staticScan(project.files, project.entries, project.omitted);
-      const localReport = renderStaticReport(staticReport);
-      $("#aiOutput").textContent = localReport + "\n\nREVISIÓN CON NOVA IA EN CURSO...";
-      const chunks = [];
-
-      for (const file of project.files) {
-        checkCancel();
-        for (let start = 0; start < file.content.length || start === 0; start += CHUNK_SIZE) {
-          const part = file.content.slice(start, start + CHUNK_SIZE);
-          chunks.push({
-            path: file.path,
-            part: Math.floor(start / CHUNK_SIZE) + 1,
-            total: Math.max(1, Math.ceil(file.content.length / CHUNK_SIZE)),
-            content: part
-          });
-          if (!file.content.length) break;
-        }
-      }
-
-      // Mantener cada petición por debajo del límite del endpoint.
-      const groups = [];
-      let group = [];
-      let size = 0;
-      for (const chunk of chunks) {
-        const itemSize = chunk.path.length + chunk.content.length + 120;
-        if (group.length && size + itemSize > 6800) {
-          groups.push(group);
-          group = [];
-          size = 0;
-        }
-        group.push(chunk);
-        size += itemSize;
-      }
-      if (group.length) groups.push(group);
-
-      const results = [];
-      for (let i = 0; i < groups.length; i++) {
-        checkCancel();
-        setProgress(15 + Math.round((i / Math.max(1, groups.length)) * 70),
-          `Nova IA: bloque ${i + 1}/${groups.length}.`);
-        statusAI(`Nova IA está revisando el bloque ${i + 1} de ${groups.length}.`);
-
-        const source = groups[i].map(c =>
-          `ARCHIVO: ${c.path} (fragmento ${c.part}/${c.total})\n${c.content}`
-        ).join("\n\n----------------\n\n");
-
-        const result = await askNova(
-          "Realiza una revisión estática rigurosa de este bloque de un proyecto. " +
-          "Busca errores concretos, riesgos de seguridad, fallos lógicos, dependencias " +
-          "y problemas de integración. Prioriza ALTO, MEDIO y BAJO. Para cada hallazgo " +
-          "indica ruta, evidencia, impacto y corrección. No inventes archivos ni líneas. " +
-          "No afirmes haber ejecutado pruebas. Responde en español y sé conciso.\n\n" +
-          `BLOQUE ${i + 1}/${groups.length}\n\n` + source
-        );
-        results.push(`BLOQUE ${i + 1}/${groups.length}\n${result}`);
-        $("#aiOutput").textContent = localReport + "\n\nREVISIÓN IA EN CURSO\n\n" + results.join("\n\n");
-      }
-
-      checkCancel();
-      setProgress(90, "Consolidando los resultados...");
-      const aiResults = results.join("\n\n").slice(0, 14000);
-      const summary = await askNova(
-        "Consolida estos resultados de revisión estática de software. " +
-        "Deduplica hallazgos. No inventes defectos ni afirmes haber ejecutado pruebas. " +
-        "Entrega: resumen ejecutivo, riesgos altos, hallazgos medios y bajos, problemas " +
-        "de integración, pruebas recomendadas y plan de corrección por prioridad. " +
-        "Distingue hechos de sospechas. Responde en español.\n\n" + aiResults
-      );
-
-      checkCancel();
-      lastReport =
-        localReport +
-        "\n\n========================================\nINFORME CONSOLIDADO DE NOVA IA\n========================================\n\n" +
-        summary +
-        "\n\nNOTA: análisis estático asistido por IA. No se ejecutó, compiló ni probó el proyecto.";
-      $("#aiOutput").textContent = lastReport;
-      $("#copyReport").disabled = false;
-      statusAI("Revisión automática y revisión con Nova IA terminadas.");
-      setProgress(100, "Revisión terminada. Verifica los hallazgos antes de modificar código.");
-    } catch (error) {
-      statusAI(error.message || "No se pudo completar la revisión.");
-      $("#aiOutput").textContent += "\n\nAVISO: " + (error.message || "Revisión incompleta.");
-      setProgress($("#reviewProgress").value, cancelRequested ? "Revisión cancelada." : "Revisión incompleta.");
-    } finally {
-      setRunning(false);
-      cancelRequested = false;
-    }
+  $("#askAI").disabled = true;
+  $("#sendFileToAI").disabled = true;
+  setAIStatus("Consultando Nova IA...");
+  try {
+    const answer = await askNova(
+      "Eres el asistente de programación de Nova Apps. Lenguaje: "+$("#language").value+
+      ". Responde en español y entrega rutas y código completo cuando corresponda. " +
+      "No afirmes haber ejecutado, compilado, guardado o publicado cambios.\n\n"+task
+    );
+    $("#aiOutput").textContent = answer;
+    lastReport = answer;
+    $("#copyReport").disabled = false;
+    setAIStatus("Respuesta recibida.");
+  } catch(e) {
+    setAIStatus(e.message || "Error al consultar Nova IA.");
+  } finally {
+    $("#askAI").disabled = false;
+    $("#sendFileToAI").disabled = false;
   }
+}
 
-  async function copyText(value, label) {
-    if (!value.trim()) return statusAI("No hay contenido para copiar.");
-    try {
-      await navigator.clipboard.writeText(value);
-      statusAI(label + " copiado.");
-    } catch {
-      statusAI("No se pudo copiar automáticamente. Selecciona el texto y cópialo manualmente.");
+async function openZip() {
+  if (!isAdmin()) return setStatus("Acceso denegado.");
+  if (running) return setStatus("Espera a que termine o cancela la revisión.");
+  if (!window.JSZip) return setStatus("No se pudo cargar JSZip.");
+  const file = $("#zipFile").files?.[0];
+  if (!file) return setStatus("Selecciona un ZIP.");
+  if (file.size>MAX_ZIP) return setStatus("El ZIP supera 25 MB.");
+
+  zip = null;
+  $("#fileList").replaceChildren();
+  $("#zipSummary").textContent = "";
+  $("#zipStatus").textContent = "Abriendo ZIP...";
+
+  try {
+    const loaded = await window.JSZip.loadAsync(file);
+    const entries = Object.values(loaded.files).filter(e=>!e.dir);
+    if (entries.length>MAX_FILES) throw new Error("El ZIP supera 1.000 archivos.");
+    zip = loaded;
+
+    for (const entry of entries) {
+      const li = document.createElement("li");
+      const label = document.createElement("span");
+      label.textContent = entry.name;
+      li.appendChild(label);
+
+      if (isTextFile(entry.name)) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Leer";
+        button.addEventListener("click",()=>readFile(entry.name));
+        li.appendChild(button);
+      }
+      $("#fileList").appendChild(li);
     }
+
+    $("#zipSummary").textContent = `${entries.length} archivos encontrados.`;
+    $("#zipStatus").textContent = "ZIP abierto.";
+    $("#staticReview").disabled = !isAdmin();
+    $("#reviewProject").disabled = !isAdmin();
+    setProgress(0,"Proyecto preparado.");
+  } catch(e) {
+    zip = null;
+    $("#zipStatus").textContent = e.message || "No se pudo abrir el ZIP.";
   }
+}
 
-  $("#openZip").addEventListener("click", openZip);
-  $("#clearZip").addEventListener("click", clearProject);
-  $("#staticReview").addEventListener("click", staticReview);
-  $("#reviewProject").addEventListener("click", fullReview);
-  $("#cancelReview").addEventListener("click", () => {
-    if (running) {
-      cancelRequested = true;
-      statusAI("Cancelación solicitada; se detendrá al terminar la petición actual.");
-    }
-  });
-  $("#askAI").addEventListener("click", sendRequest);
-  $("#sendFileToAI").addEventListener("click", askAboutFile);
-  $("#copyFile").addEventListener("click", () => copyText($("#fileContent").value, "Contenido"));
-  $("#copyAI").addEventListener("click", () => copyText($("#aiOutput").textContent || "", "Resultado"));
-  $("#copyReport").addEventListener("click", () => copyText(lastReport, "Informe"));
-  $("#clearAI").addEventListener("click", () => {
-    $("#aiTask").value = "";
-    $("#aiOutput").textContent = "Aquí aparecerán los resultados.";
-    statusAI("Solicitud limpiada.");
-  });
+async function readFile(path) {
+  if (!zip || !isAdmin()) return;
+  try {
+    const entry = zip.file(path);
+    if (!entry) throw new Error("Archivo no encontrado.");
+    const bytes = await entry.async("uint8array");
+    if (bytes.length>MAX_FILE) throw new Error("Archivo mayor de 500 KB.");
+    if (!isText(bytes)) throw new Error("El archivo parece binario.");
+    $("#filePath").value = path;
+    $("#fileContent").value = new TextDecoder().decode(bytes);
+    $("#zipStatus").textContent = "Archivo cargado: "+path;
+  } catch(e) {
+    $("#zipStatus").textContent = e.message || "No se pudo leer el archivo.";
+  }
+}
 
-  window.addEventListener("nova-admin-revisor-autorizado", () => {
-    statusZip("Acceso autorizado. Puedes abrir un ZIP.");
-  });
+async function copyText(value,label) {
+  if (!value.trim()) return setAIStatus("No hay contenido para copiar.");
+  try {
+    await navigator.clipboard.writeText(value);
+    setAIStatus(label+" copiado.");
+  } catch {
+    setAIStatus("No se pudo copiar automáticamente; selecciona el texto manualmente.");
+  }
+}
+
+$("#openZip").addEventListener("click",openZip);
+$("#staticReview").addEventListener("click",runStatic);
+$("#reviewProject").addEventListener("click",runFullReview);
+$("#cancelReview").addEventListener("click",()=>{
+  if (running) {
+    cancelRequested=true;
+    setAIStatus("Cancelación solicitada; se detendrá al terminar la petición actual.");
+  }
+});
+$("#askAI").addEventListener("click",sendRequest);
+$("#sendFileToAI").addEventListener("click",()=>{
+  const path=$("#filePath").value;
+  const content=$("#fileContent").value;
+  if (!path || !content.trim()) return setAIStatus("Selecciona primero un archivo.");
+  $("#language").value=(
+    ["js","mjs","cjs"].includes(extension(path))?"JavaScript":
+    ["ts","tsx"].includes(extension(path))?"TypeScript":
+    ["html","htm","css","scss"].includes(extension(path))?"HTML y CSS":
+    extension(path)==="java"?"Java":
+    extension(path)==="py"?"Python":
+    extension(path)==="sql"?"SQL":"Otro"
+  );
+  $("#aiTask").value="Revisa estáticamente este archivo; identifica errores concretos, riesgos y correcciones. No afirmes haber ejecutado el código. Si propones cambios, entrega el archivo completo cuando sea razonable.\n\nArchivo: "+path+"\n\n"+content.slice(0,9000);
+  sendRequest();
+});
+$("#copyFile").addEventListener("click",()=>copyText($("#fileContent").value,"Archivo"));
+$("#copyAI").addEventListener("click",()=>copyText($("#aiOutput").textContent||"","Resultado"));
+$("#copyReport").addEventListener("click",()=>copyText(lastReport,"Informe"));
+$("#clearAI").addEventListener("click",()=>{
+  $("#aiTask").value="";
+  $("#aiOutput").textContent="Aquí aparecerán los resultados.";
+  setAIStatus("Solicitud limpiada.");
+});
+$("#clearZip").addEventListener("click",()=>{
+  if (running) return setStatus("Cancela la revisión antes de cerrar.");
+  zip=null;
+  $("#zipFile").value="";
+  $("#fileList").replaceChildren();
+  $("#zipSummary").textContent="";
+  $("#filePath").value="";
+  $("#fileContent").value="";
+  $("#staticReview").disabled=true;
+  $("#reviewProject").disabled=true;
+  $("#zipStatus").textContent="Ningún ZIP abierto.";
+  lastReport="";
+  $("#copyReport").disabled=true;
+  setProgress(0,"Esperando un ZIP.");
+});
+$("#loginBtn").addEventListener("click",async()=>{
+  try {
+    const {error}=await supabase.auth.signInWithOAuth({
+      provider:"google",
+      options:{redirectTo:window.location.href}
+    });
+    if(error) throw error;
+  } catch(e) {
+    setStatus("No se pudo iniciar sesión: "+(e.message||"error"));
+  }
+});
+$("#logoutBtn").addEventListener("click",async()=>{
+  const {error}=await supabase.auth.signOut();
+  if(error) setStatus("No se pudo cerrar sesión.");
+  else window.location.reload();
+});
+window.addEventListener("nova-admin-revisor-autorizado",()=>{
+  $("#zipStatus").textContent="Acceso autorizado. Puedes abrir un ZIP.";
+});
 </script>
 </body>
 </html>

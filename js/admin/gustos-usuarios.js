@@ -3,7 +3,6 @@
 "use strict";
 
 const STORAGE_KEY = "nova_admin_gustos_usuarios_v1";
-const ROLES_PERMITIDOS = ["propietario", "administrador", "admin"];
 
 function normalizar(valor) {
 return String(valor ?? "").trim();
@@ -17,6 +16,16 @@ return String(valor ?? "").replace(/[&<>"']/g, caracter => ({
 '"': """,
 "'": "'"
 })[caracter]);
+}
+
+function estaAutorizado() {
+return document.body?.dataset?.adminAuthorized === "true";
+}
+
+function comprobarPermiso() {
+if (!estaAutorizado()) {
+throw new Error("No tienes permiso para realizar esta acción.");
+}
 }
 
 function leerDatos() {
@@ -46,29 +55,9 @@ usuario?.email ||
 );
 }
 
-function obtenerRolActual() {
-const rol = document.body?.dataset?.role ||
-localStorage.getItem("nova_user_role") ||
-"";
-
-return normalizar(rol)
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase();
-
-}
-
-function estaAutorizado() {
-return ROLES_PERMITIDOS.includes(obtenerRolActual());
-}
-
-function comprobarPermiso() {
-if (!estaAutorizado()) {
-throw new Error("No tienes permiso para realizar esta acción.");
-}
-}
-
 function obtenerPreferencias(usuarioId) {
+comprobarPermiso();
+
 const id = normalizar(usuarioId);
 const registro = leerDatos().find(item => item.userId === id);
 
@@ -134,8 +123,11 @@ if (registro.notes.length > 2000) {
   throw new Error("Las notas no pueden superar los 2000 caracteres.");
 }
 
-if (indice >= 0) datos[indice] = registro;
-else datos.push(registro);
+if (indice >= 0) {
+  datos[indice] = registro;
+} else {
+  datos.push(registro);
+}
 
 guardarDatos(datos);
 return obtenerPreferencias(id);
@@ -159,10 +151,12 @@ throw new Error("No se encontró el contenedor del módulo.");
 }
 
 if (!estaAutorizado()) {
-  contenedor.innerHTML = `
-    <section class="nova-admin-gustos">
-      <p role="alert">No tienes autorización para acceder a esta sección.</p>
-    </section>`;
+  contenedor.replaceChildren();
+
+  const aviso = document.createElement("p");
+  aviso.setAttribute("role", "alert");
+  aviso.textContent = "No tienes autorización para acceder a esta sección.";
+  contenedor.appendChild(aviso);
   return;
 }
 
@@ -174,7 +168,7 @@ contenedor.innerHTML = `
   <section class="nova-admin-gustos">
     <header>
       <h2>Gustos y preferencias de usuarios</h2>
-      <p>Consulta y administra las preferencias guardadas.</p>
+      <p>Consulta y administra las preferencias guardadas en este navegador.</p>
     </header>
 
     <div class="nova-admin-gustos__search">
@@ -206,7 +200,7 @@ contenedor.innerHTML = `
                       <small>${escaparHTML(correo || id)}</small>
                     </button>`;
                 }).join("")
-              : "<p>No se han proporcionado usuarios para mostrar.</p>"
+              : "<p>No hay usuarios disponibles para mostrar.</p>"
           }
         </div>
       </div>
@@ -283,7 +277,9 @@ const mensaje = contenedor.querySelector("#nova-gustos-mensaje");
 let seleccionado = "";
 
 function cargarUsuario(id) {
-  const usuario = listaUsuarios.find(item => obtenerUsuarioId(item) === id);
+  const usuario = listaUsuarios.find(
+    item => obtenerUsuarioId(item) === id
+  );
 
   if (!usuario) {
     mensaje.textContent = "No se encontró ese usuario.";

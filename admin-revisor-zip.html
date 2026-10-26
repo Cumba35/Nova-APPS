@@ -135,10 +135,7 @@
 
     <section class="tool-section">
       <h2>1. Abrir el proyecto</h2>
-
-      <p>
-        Selecciona un ZIP con el código fuente del proyecto que quieras revisar.
-      </p>
+      <p>Selecciona un ZIP con el código fuente del proyecto que quieras revisar.</p>
 
       <p class="tool-warning">
         La herramienta no ejecuta los archivos. El análisis es estático y depende
@@ -168,11 +165,9 @@
 
     <section class="tool-section">
       <h2>2. Revisar todo el proyecto</h2>
-
       <p>
-        Esta función recorre los archivos del ZIP, lee los archivos de texto compatibles,
-        divide el código en bloques para enviarlo a Nova IA y reúne los resultados en
-        un informe consolidado.
+        La herramienta recorre los archivos del ZIP, lee archivos de texto compatibles,
+        divide el código en bloques para enviarlo a Nova IA y reúne los resultados.
       </p>
 
       <div class="tool-card">
@@ -180,30 +175,22 @@
         <ul>
           <li>Errores de lógica y posibles defectos del código.</li>
           <li>Problemas de seguridad, autenticación y autorización.</li>
-          <li>Credenciales o secretos que puedan estar expuestos en el código.</li>
+          <li>Credenciales o secretos potencialmente expuestos.</li>
           <li>Referencias a archivos, módulos, funciones y dependencias.</li>
           <li>Posibles incompatibilidades entre archivos y componentes.</li>
-          <li>Configuración, estructura del proyecto y mantenibilidad.</li>
-          <li>Pruebas que convendría realizar para verificar el proyecto.</li>
+          <li>Configuración, estructura y mantenibilidad.</li>
+          <li>Pruebas recomendadas.</li>
         </ul>
 
         <p class="tool-muted">
-          Se revisan los archivos de texto compatibles incluidos en el ZIP. Los archivos
-          binarios, los archivos de texto demasiado grandes y otros archivos no compatibles
-          pueden quedar fuera. Los hallazgos dependen del código recibido y no se garantiza
-          detectar todos los errores.
+          Los archivos binarios, los archivos de texto demasiado grandes y otros archivos
+          no compatibles pueden quedar fuera. No se garantiza detectar todos los errores.
         </p>
 
         <div class="tool-row">
-          <button id="reviewProject" type="button" disabled>
-            Revisar todo el proyecto
-          </button>
-          <button id="cancelReview" class="secondary" type="button" disabled>
-            Cancelar revisión
-          </button>
-          <button id="copyReport" class="secondary" type="button" disabled>
-            Copiar informe
-          </button>
+          <button id="reviewProject" type="button" disabled>Revisar todo el proyecto</button>
+          <button id="cancelReview" class="secondary" type="button" disabled>Cancelar revisión</button>
+          <button id="copyReport" class="secondary" type="button" disabled>Copiar informe</button>
         </div>
 
         <progress id="reviewProgress" class="tool-progress" value="0" max="100"></progress>
@@ -257,7 +244,6 @@
 
       <h3>Respuesta de Nova IA</h3>
       <pre id="aiOutput" class="tool-output">Aquí aparecerán las respuestas y el informe de revisión.</pre>
-
       <button id="copyAI" type="button">Copiar respuesta</button>
     </section>
 
@@ -265,13 +251,12 @@
       <h2>5. Límites y funcionamiento</h2>
       <ul>
         <li>El ZIP se lee en el navegador; no se ejecutan sus archivos.</li>
-        <li>El límite de tamaño del ZIP es de 25 MB y el máximo de 1.000 archivos.</li>
-        <li>El análisis integral admite hasta 200.000 caracteres de código legible.</li>
-        <li>Los archivos de texto individuales tienen un límite de lectura de 500 KB.</li>
-        <li>La revisión requiere conexión y que la función Supabase <code>nova-ia</code> esté disponible.</li>
-        <li>Nova IA puede cometer errores; revisa las recomendaciones antes de aplicarlas.</li>
+        <li>Límite del ZIP: 25 MB y 1.000 archivos.</li>
+        <li>Límite de código legible: 200.000 caracteres.</li>
+        <li>Límite por archivo de texto: 500 KB.</li>
+        <li>Se requiere conexión y que la función Supabase <code>nova-ia</code> esté disponible.</li>
         <li>El informe no demuestra que el proyecto compile, funcione o sea seguro.</li>
-        <li>Esta página no modifica ni publica automáticamente archivos en GitHub.</li>
+        <li>Esta página no modifica ni publica archivos automáticamente en GitHub.</li>
       </ul>
     </section>
   </section>
@@ -289,8 +274,9 @@
   const MAX_TEXT_BYTES = 500 * 1024;
   const MAX_TOTAL_CHARS = 200000;
   const MAX_TASK_CHARS = 12000;
-  const CHUNK_CHARS = 6500;
-  const MAX_CHUNK_INPUT_CHARS = 7800;
+  const CHUNK_CHARS = 6000;
+  const MAX_CHUNK_INPUT_CHARS = 7000;
+  const MAX_CONSOLIDATION_CHARS = 14000;
 
   const TEXT_EXTENSIONS = new Set([
     "txt", "md", "rst", "json", "jsonc", "xml", "yaml", "yml", "toml",
@@ -299,9 +285,9 @@
     "java", "kt", "kts", "gradle", "properties",
     "py", "sh", "bash", "bat", "ps1", "sql", "csv",
     "c", "h", "cpp", "hpp", "cs", "go", "rs", "php", "rb", "dart",
-    "vue", "svelte", "swift", "kt", "ini", "conf", "cfg",
+    "vue", "svelte", "swift", "ini", "conf", "cfg",
     "gitignore", "gitattributes", "dockerfile", "makefile",
-    "gradle", "lock", "editorconfig", "xml"
+    "lock", "editorconfig"
   ]);
 
   let zipActual = null;
@@ -337,9 +323,12 @@
 
   function esArchivoTextoCompatible(ruta) {
     const nombre = ruta.split("/").pop().toLowerCase();
+
     return TEXT_EXTENSIONS.has(extensionDe(ruta)) ||
-      ["dockerfile", "makefile", ".gitignore", ".gitattributes",
-       ".editorconfig", "license", "readme"].includes(nombre);
+      [
+        "dockerfile", "makefile", ".gitignore", ".gitattributes",
+        ".editorconfig", "license", "readme"
+      ].includes(nombre);
   }
 
   function pareceTexto(bytes) {
@@ -427,7 +416,6 @@
     $("#filePath").value = "";
     $("#fileContent").value = "";
     $("#reviewProject").disabled = true;
-
     estadoZip("Abriendo ZIP y leyendo su estructura...");
 
     try {
@@ -524,6 +512,10 @@
       throw new Error("Acceso administrativo no autorizado.");
     }
 
+    if (mensaje.length > 30000) {
+      throw new Error("La solicitud supera el límite de 30.000 caracteres de Nova IA.");
+    }
+
     const { data: sesionData, error: sesionError } =
       await supabase.auth.getSession();
 
@@ -552,28 +544,6 @@
     return data.answer.trim();
   }
 
-  async function solicitarRevisionArchivo() {
-    const ruta = $("#filePath").value;
-    const contenido = $("#fileContent").value;
-
-    if (!ruta || !contenido.trim()) {
-      estadoIA("Selecciona y carga un archivo de texto primero.");
-      return;
-    }
-
-    $("#language").value = detectarLenguaje(ruta);
-
-    $("#aiTask").value =
-      "Realiza una revisión estática de este archivo. Busca errores lógicos, " +
-      "problemas de seguridad, incompatibilidades y mejoras. Cita la ruta y los " +
-      "fragmentos relevantes. Distingue hechos de sospechas. No afirmes haber " +
-      "ejecutado o probado el código. Si recomiendas cambiarlo, entrega el archivo " +
-      "completo cuando sea razonable.\n\n" +
-      "Archivo: " + ruta + "\n\nContenido:\n" + contenido.slice(0, 9000);
-
-    await enviarSolicitud();
-  }
-
   function detectarLenguaje(ruta) {
     const extension = extensionDe(ruta);
 
@@ -585,6 +555,27 @@
     if (extension === "sql") return "SQL";
 
     return "Otro";
+  }
+
+  async function solicitarRevisionArchivo() {
+    const ruta = $("#filePath").value;
+    const contenido = $("#fileContent").value;
+
+    if (!ruta || !contenido.trim()) {
+      estadoIA("Selecciona y carga un archivo de texto primero.");
+      return;
+    }
+
+    $("#language").value = detectarLenguaje(ruta);
+    $("#aiTask").value =
+      "Realiza una revisión estática de este archivo. Busca errores lógicos, " +
+      "problemas de seguridad, incompatibilidades y mejoras. Cita la ruta y los " +
+      "fragmentos relevantes. Distingue hechos de sospechas. No afirmes haber " +
+      "ejecutado o probado el código. Si recomiendas cambiarlo, entrega el archivo " +
+      "completo cuando sea razonable.\n\n" +
+      "Archivo: " + ruta + "\n\nContenido:\n" + contenido.slice(0, 9000);
+
+    await enviarSolicitud();
   }
 
   async function enviarSolicitud() {
@@ -651,8 +642,11 @@
       const contenido = archivo.contenido;
       const totalPartes = Math.max(1, Math.ceil(contenido.length / CHUNK_CHARS));
 
-      for (let inicio = 0; inicio < contenido.length || (inicio === 0 && !contenido.length);
-           inicio += CHUNK_CHARS) {
+      for (
+        let inicio = 0;
+        inicio < contenido.length || (inicio === 0 && !contenido.length);
+        inicio += CHUNK_CHARS
+      ) {
         const fragmento = contenido.slice(inicio, inicio + CHUNK_CHARS);
         const parte = Math.floor(inicio / CHUNK_CHARS) + 1;
 
@@ -755,7 +749,6 @@
       }
 
       const bloques = crearBloques(archivosTexto);
-
       const inventario = entradas.map(e => e.name);
       const resumenBloques = [];
 
@@ -811,26 +804,31 @@
       }
 
       comprobarCancelacion();
-
       actualizarProgreso(88, "Consolidando los hallazgos del proyecto.");
 
       const resultadosConLimite = resumenBloques.join("\n\n");
-      const limiteConsolidacion = 26000;
       const resultadosParaConsolidar =
-        resultadosConLimite.length > limiteConsolidacion
-          ? resultadosConLimite.slice(0, limiteConsolidacion) +
-            "\n\n[Parte final de resultados omitida por límite de consolidación. " +
+        resultadosConLimite.length > MAX_CONSOLIDATION_CHARS
+          ? resultadosConLimite.slice(0, MAX_CONSOLIDATION_CHARS) +
+            "\n\n[Resultados posteriores omitidos por el límite de consolidación. " +
             "Consulta los resultados de los bloques mostrados anteriormente.]"
           : resultadosConLimite;
 
-      const informe = await pedirNova(
+      const listaRutasConLimite = inventario.join("\n").slice(0, 2000);
+      const listaAnalizadosConLimite =
+        archivosTexto.map(a => a.ruta).join(", ").slice(0, 1200);
+      const listaOmitidosConLimite = (
+        archivosOmitidos.map(a => `${a.ruta} (${a.motivo})`).join("; ") || "Ninguno"
+      ).slice(0, 1200);
+
+      const promptConsolidacion =
         "Actúa como revisor principal de software. Consolida los resultados de una revisión " +
-        "estática de un proyecto. El inventario completo de rutas es:\n" +
-        inventario.join("\n") +
-        "\n\nArchivos de texto analizados: " +
-        archivosTexto.map(a => a.ruta).join(", ") +
-        "\n\nArchivos omitidos: " +
-        (archivosOmitidos.map(a => `${a.ruta} (${a.motivo})`).join("; ") || "Ninguno") +
+        "estática de un proyecto. Inventario de rutas (puede estar truncado):\n" +
+        listaRutasConLimite +
+        "\n\nArchivos de texto analizados (lista limitada): " +
+        listaAnalizadosConLimite +
+        "\n\nArchivos omitidos (lista limitada): " +
+        listaOmitidosConLimite +
         "\n\nResultados recibidos de los bloques:\n" +
         resultadosParaConsolidar +
         "\n\nEntrega el informe final en español con estas secciones:\n" +
@@ -847,9 +845,16 @@
         "estática, no de una auditoría exhaustiva ni de una compilación o ejecución real. " +
         "El proyecto tenía " + entradas.length + " archivos; se analizaron " +
         archivosTexto.length + " archivos de texto y se omitieron " +
-        archivosOmitidos.length + " archivos."
-      );
+        archivosOmitidos.length + " archivos.";
 
+      if (promptConsolidacion.length > 29000) {
+        throw new Error(
+          "La solicitud de consolidación superó el límite de seguridad. " +
+          "Divide el proyecto en ZIP más pequeños y vuelve a intentarlo."
+        );
+      }
+
+      const informe = await pedirNova(promptConsolidacion);
       comprobarCancelacion();
 
       ultimaRespuesta =
@@ -908,6 +913,7 @@
   $("#openZip").addEventListener("click", abrirZip);
   $("#clearZip").addEventListener("click", limpiarProyecto);
   $("#reviewProject").addEventListener("click", revisarTodoElProyecto);
+
   $("#cancelReview").addEventListener("click", () => {
     if (revisionActiva) {
       cancelacionSolicitada = true;

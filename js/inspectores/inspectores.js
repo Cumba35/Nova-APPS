@@ -3,20 +3,33 @@
 
 /*
  * NOVA APPS — GESTIÓN DE INSPECTORES
- * Versión local de demostración.
- * No sustituye la autenticación ni los permisos del servidor.
+ * Modo de demostración con almacenamiento local.
+ * No representa una gestión real de usuarios ni permisos del servidor.
  */
 
 (function () {
   const CLAVE = "nova_inspectores_demo_v1";
 
-  let inspectores = cargar();
-
-  const formulario = document.getElementById("formulario");
-  const lista = document.getElementById("lista");
-  const mensaje = document.getElementById("mensaje");
-
   const obtener = (id) => document.getElementById(id);
+
+  const formulario = obtener("formulario");
+  const lista = obtener("lista");
+  const mensaje = obtener("mensaje");
+  const botonAbrir = obtener("abrirFormulario");
+  const botonCancelar = obtener("cancelar");
+
+  if (
+    !formulario ||
+    !lista ||
+    !mensaje ||
+    !botonAbrir ||
+    !botonCancelar
+  ) {
+    console.error("Nova Apps: faltan elementos necesarios en inspectores.html.");
+    return;
+  }
+
+  let inspectores = cargar();
 
   function cargar() {
     try {
@@ -45,6 +58,7 @@
       localStorage.setItem(CLAVE, JSON.stringify(inspectores));
       return true;
     } catch (error) {
+      console.error("No se pudieron guardar los registros.", error);
       mostrarMensaje(
         "No se pudieron guardar los datos en este dispositivo."
       );
@@ -53,7 +67,7 @@
   }
 
   function nuevoId() {
-    if (window.crypto?.randomUUID) {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
       return window.crypto.randomUUID();
     }
 
@@ -74,12 +88,32 @@
     mensaje.textContent = texto;
   }
 
+  function abrirFormulario() {
+    formulario.hidden = false;
+    formulario.classList.add("abierto");
+    botonAbrir.setAttribute("aria-expanded", "true");
+    obtener("nombre").focus();
+  }
+
+  function cerrarFormulario(limpiar = true) {
+    formulario.hidden = true;
+    formulario.classList.remove("abierto");
+    botonAbrir.setAttribute("aria-expanded", "false");
+
+    if (limpiar) formulario.reset();
+  }
+
   function renderizar() {
-    const busqueda = obtener("buscar").value
+    const campoBusqueda = obtener("buscar");
+    const campoFiltro = obtener("filtroEstado");
+
+    if (!campoBusqueda || !campoFiltro) return;
+
+    const busqueda = campoBusqueda.value
       .trim()
       .toLocaleLowerCase();
 
-    const filtro = obtener("filtroEstado").value;
+    const filtro = campoFiltro.value;
 
     const activos = inspectores.filter(
       (item) => item.estado === "activo"
@@ -138,9 +172,7 @@
 
       const botonEstado = elemento(
         "button",
-        item.estado === "activo"
-          ? "Marcar inactivo"
-          : "Marcar activo",
+        item.estado === "activo" ? "Marcar inactivo" : "Marcar activo",
         "boton"
       );
 
@@ -206,18 +238,18 @@
     mostrarMensaje("Registro local eliminado.");
   }
 
-  obtener("abrirFormulario").addEventListener("click", () => {
-    formulario.classList.toggle("abierto");
-
-    if (formulario.classList.contains("abierto")) {
-      obtener("nombre").focus();
+  botonAbrir.addEventListener("click", () => {
+    if (formulario.hidden) {
+      abrirFormulario();
+    } else {
+      cerrarFormulario(false);
     }
   });
 
-  obtener("cancelar").addEventListener("click", () => {
-    formulario.reset();
-    formulario.classList.remove("abierto");
+  botonCancelar.addEventListener("click", () => {
+    cerrarFormulario();
     mostrarMensaje("");
+    botonAbrir.focus();
   });
 
   formulario.addEventListener("submit", (evento) => {
@@ -230,6 +262,11 @@
 
     if (!nombre || !codigo || !zona) {
       mostrarMensaje("Completa todos los campos obligatorios.");
+      return;
+    }
+
+    if (!["activo", "inactivo"].includes(estado)) {
+      mostrarMensaje("Selecciona un estado válido.");
       return;
     }
 
@@ -261,8 +298,7 @@
       return;
     }
 
-    formulario.reset();
-    formulario.classList.remove("abierto");
+    cerrarFormulario();
     renderizar();
     mostrarMensaje("Registro de demostración guardado.");
   });
@@ -270,5 +306,6 @@
   obtener("buscar").addEventListener("input", renderizar);
   obtener("filtroEstado").addEventListener("change", renderizar);
 
+  cerrarFormulario(false);
   renderizar();
 })();

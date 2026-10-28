@@ -1,0 +1,135 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101426">
+  <meta name="description" content="Administra tu perfil, preferencias, privacidad, amistades y recuerdos en Nova Apps.">
+  <title>Mi cuenta · Nova Apps</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/mi-cuenta.css">
+  <style>
+    .account-page {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .account-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .account-brand {
+      color: inherit;
+      font-size: 1.15rem;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .account-back {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 16px;
+      border: 1px solid var(--line, #dce2ee);
+      border-radius: 12px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .account-back:focus-visible,
+    .account-brand:focus-visible {
+      outline: 3px solid #7c9cff;
+      outline-offset: 3px;
+    }
+
+    .account-footer {
+      padding: 24px 8px;
+      color: var(--muted, #64708a);
+      text-align: center;
+      font-size: .9rem;
+    }
+
+    @media (max-width: 480px) {
+      .account-page {
+        padding: 10px;
+      }
+
+      .account-topbar {
+        align-items: stretch;
+      }
+
+      .account-back {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="account-page">
+    <header class="account-topbar">
+      <a class="account-brand" href="./index.html">NOVA APPS</a>
+      <a class="account-back" href="./index.html">← Volver al inicio</a>
+    </header>
+
+    <section
+      id="nova-account-root"
+      aria-label="Administración de mi cuenta"
+      aria-live="polite">
+      <p>Cargando tu cuenta…</p>
+    </section>
+
+    <footer class="account-footer">
+      Nova Apps · Mi cuenta
+    </footer>
+  </main>
+
+  <script src="./js/mi-cuenta.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      function iniciarCuenta() {
+        const root = document.getElementById("nova-account-root");
+
+        if (!root) return;
+
+        if (!window.NOVA_ACCOUNT ||
+            typeof window.NOVA_ACCOUNT.mount !== "function") {
+          root.textContent =
+            "No se pudo cargar el módulo de Mi Cuenta. Comprueba que js/mi-cuenta.js exista y esté disponible.";
+          return;
+        }
+
+        const invitationUrl =
+          window.location.origin +
+          window.location.pathname.replace(/mi-cuenta\.html$/, "index.html");
+
+        const mounted = window.NOVA_ACCOUNT.mount(root, {
+          invitationUrl: invitationUrl,
+          initialTab: "perfil"
+        });
+
+        if (!mounted) {
+          root.textContent = "No se pudo iniciar Mi Cuenta.";
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", iniciarCuenta, {
+          once: true
+        });
+      } else {
+        iniciarCuenta();
+      }
+    })();
+  </script>
+</body>
+</html>

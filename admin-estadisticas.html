@@ -1,16 +1,18 @@
 <!doctype html>
-
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101426">
-  <meta name="description" content="Estadísticas administrativas de Nova Apps.">  <title>Estadísticas · Nova Apps</title>  <link rel="stylesheet" href="./css/admin.css">
-  <link rel="stylesheet" href="./css/admin-estadisticas.css">  <script type="module">
-    import {
-      setupAuth,
-      guardPage
-    } from "./admin-core.js";
+  <meta name="description" content="Estadísticas administrativas de Nova Apps.">
+
+  <title>Estadísticas · Nova Apps</title>
+
+  <link rel="stylesheet" href="./css/admin.css">
+  <link rel="stylesheet" href="./css/admin-estadisticas.css">
+
+  <script type="module">
+    import { setupAuth, guardPage } from "./admin-core.js";
 
     setupAuth();
 
@@ -20,7 +22,12 @@
       document.querySelector("#panel")?.classList.remove("hidden");
       document.querySelector("#login")?.classList.add("hidden");
     }
-  </script>  <script type="module" src="./js/admin/estadisticas.js"></script></head><body>
+  </script>
+
+  <script type="module" src="./js/admin/estadisticas.js"></script>
+</head>
+
+<body>
   <main>
     <header class="stats-header">
       <div>
@@ -28,183 +35,193 @@
         <p class="stats-subtitle">
           Usuarios, actividad, valoraciones y rendimiento de la plataforma.
         </p>
-      </div>  <div class="stats-actions">
-    <a href="./admin.html">Volver al panel</a>
-    <button id="refreshStats" type="button" disabled>
-      Actualizar estadísticas
-    </button>
-  </div>
-</header>
-
-<p id="message" role="status" aria-live="polite">
-  Comprobando sesión...
-</p>
-
-<section id="login" class="hidden">
-  <h2>Acceso administrativo</h2>
-  <p>Inicia sesión con la cuenta autorizada.</p>
-  <button id="loginBtn" type="button">
-    Iniciar sesión con Google
-  </button>
-</section>
-
-<section id="panel" class="hidden">
-  <p id="account" class="stats-muted"></p>
-
-  <section class="stats-section">
-    <h2>Resumen general</h2>
-
-    <div class="stats-grid">
-      <article class="stats-card">
-        <span class="stats-card-label">Usuarios registrados</span>
-        <strong class="stats-card-value" id="usuariosRegistrados">—</strong>
-        <span class="stats-card-note">Pendiente de conexión de datos</span>
-      </article>
-
-      <article class="stats-card">
-        <span class="stats-card-label">Usuarios activos</span>
-        <strong class="stats-card-value" id="usuariosActivos">—</strong>
-        <span class="stats-card-note">Requiere definir el período de actividad</span>
-      </article>
-
-      <article class="stats-card">
-        <span class="stats-card-label">Comentarios</span>
-        <strong class="stats-card-value" id="totalComentarios">—</strong>
-        <span class="stats-card-note">Pendiente de implementar el registro</span>
-      </article>
-
-      <article class="stats-card">
-        <span class="stats-card-label">Veces compartida</span>
-        <strong class="stats-card-value" id="totalCompartidos">—</strong>
-        <span class="stats-card-note">Requiere seguimiento de eventos</span>
-      </article>
-
-      <article class="stats-card">
-        <span class="stats-card-label">Valoración general</span>
-        <strong class="stats-card-value" id="valoracionGeneral">—</strong>
-        <span class="stats-card-note">Promedio de valoraciones registradas</span>
-      </article>
-
-      <article class="stats-card">
-        <span class="stats-card-label">Nuevos usuarios</span>
-        <strong class="stats-card-value" id="nuevosUsuarios">—</strong>
-        <span class="stats-card-note">Pendiente de definir el período</span>
-      </article>
-    </div>
-  </section>
-
-  <section class="stats-section">
-    <h2>Valoraciones</h2>
-
-    <div class="stats-two-columns">
-      <article class="stats-panel">
-        <h3>Mayor valoración</h3>
-        <strong class="stats-card-value" id="valoracionMayor">—</strong>
-        <p class="stats-status">
-          Se mostrará cuando existan valoraciones registradas.
-        </p>
-      </article>
-
-      <article class="stats-panel">
-        <h3>Menor valoración</h3>
-        <strong class="stats-card-value" id="valoracionMenor">—</strong>
-        <p class="stats-status">
-          Se mostrará cuando existan valoraciones registradas.
-        </p>
-      </article>
-    </div>
-  </section>
-
-  <section class="stats-section">
-    <h2>Actividad de la plataforma</h2>
-
-    <div class="stats-panel">
-      <h3>Actividad a lo largo del tiempo</h3>
-      <div class="stats-chart-placeholder">
-        El gráfico estará disponible cuando se registre la actividad real.
       </div>
-      <p class="stats-status">
-        Se podrán incluir visitas, sesiones, registros y publicaciones.
-      </p>
-    </div>
-  </section>
 
-  <section class="stats-section">
-    <h2>Estadísticas por aplicación y publicación</h2>
+      <div class="stats-actions">
+        <a href="./admin.html">Volver al panel</a>
+        <button id="refreshStats" type="button" disabled>
+          Actualizar estadísticas
+        </button>
+      </div>
+    </header>
 
-    <div class="stats-table-wrap">
-      <table class="stats-table">
-        <thead>
-          <tr>
-            <th>Contenido</th>
-            <th>Valoración</th>
-            <th>Comentarios</th>
-            <th>Compartidos</th>
-            <th>Visitas</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="5" class="stats-empty">
-              Los datos aparecerán cuando se conecten las fuentes correspondientes.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+    <p id="message" role="status" aria-live="polite">
+      Comprobando sesión...
+    </p>
 
-  <section class="stats-section">
-    <h2>Otras métricas</h2>
+    <section id="login" class="hidden">
+      <h2>Acceso administrativo</h2>
+      <p>Inicia sesión con la cuenta autorizada.</p>
 
-    <div class="stats-two-columns">
-      <article class="stats-panel">
-        <h3>Participación</h3>
-        <ul class="stats-list">
-          <li>Solicitudes de amistad: pendiente</li>
-          <li>Publicaciones nuevas: pendiente</li>
-          <li>Sesiones de usuario: pendiente</li>
-          <li>Usuarios recurrentes: pendiente</li>
-        </ul>
-      </article>
+      <button id="loginBtn" type="button">
+        Iniciar sesión con Google
+      </button>
+    </section>
 
-      <article class="stats-panel">
-        <h3>Rendimiento técnico</h3>
-        <ul class="stats-list">
-          <li>Errores registrados: pendiente</li>
-          <li>Tipos de dispositivo: pendiente</li>
-          <li>Navegadores utilizados: pendiente</li>
-          <li>Tiempo de carga: pendiente</li>
-        </ul>
-      </article>
-    </div>
-  </section>
+    <section id="panel" class="hidden">
+      <p id="account" class="stats-muted"></p>
 
-  <section class="stats-section">
-    <h2>Estado de las estadísticas</h2>
-    <div class="stats-notice">
-      <p id="statsStatus" role="status" aria-live="polite">
-        Las métricas reales están pendientes de conexión.
-      </p>
+      <section class="stats-section">
+        <h2>Resumen general</h2>
+
+        <div class="stats-grid">
+          <article class="stats-card">
+            <span class="stats-card-label">Usuarios registrados</span>
+            <strong class="stats-card-value" id="usuariosRegistrados">—</strong>
+            <span class="stats-card-note">Pendiente de conectar los datos reales</span>
+          </article>
+
+          <article class="stats-card">
+            <span class="stats-card-label">Usuarios activos</span>
+            <strong class="stats-card-value" id="usuariosActivos">—</strong>
+            <span class="stats-card-note">Requiere definir el período de actividad</span>
+          </article>
+
+          <article class="stats-card">
+            <span class="stats-card-label">Comentarios</span>
+            <strong class="stats-card-value" id="totalComentarios">—</strong>
+            <span class="stats-card-note">Pendiente de conectar los comentarios</span>
+          </article>
+
+          <article class="stats-card">
+            <span class="stats-card-label">Veces compartida</span>
+            <strong class="stats-card-value" id="totalCompartidos">—</strong>
+            <span class="stats-card-note">Requiere registro de eventos</span>
+          </article>
+
+          <article class="stats-card">
+            <span class="stats-card-label">Valoración general</span>
+            <strong class="stats-card-value" id="valoracionGeneral">—</strong>
+            <span class="stats-card-note">Promedio de valoraciones registradas</span>
+          </article>
+
+          <article class="stats-card">
+            <span class="stats-card-label">Nuevos usuarios</span>
+            <strong class="stats-card-value" id="nuevosUsuarios">—</strong>
+            <span class="stats-card-note">Pendiente de definir el período</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>Valoraciones</h2>
+
+        <div class="stats-two-columns">
+          <article class="stats-panel">
+            <h3>Mayor valoración</h3>
+            <strong class="stats-card-value" id="valoracionMayor">—</strong>
+            <p class="stats-status">
+              Disponible cuando existan valoraciones reales.
+            </p>
+          </article>
+
+          <article class="stats-panel">
+            <h3>Menor valoración</h3>
+            <strong class="stats-card-value" id="valoracionMenor">—</strong>
+            <p class="stats-status">
+              Disponible cuando existan valoraciones reales.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>Actividad de la plataforma</h2>
+
+        <article class="stats-panel">
+          <h3>Actividad a lo largo del tiempo</h3>
+
+          <div
+            id="statsChart"
+            class="stats-chart-placeholder"
+            role="status"
+          >
+            El gráfico estará disponible cuando se registre la actividad real.
+          </div>
+
+          <p class="stats-status">
+            Podrá incluir visitas, sesiones, registros y publicaciones.
+          </p>
+        </article>
+      </section>
+
+      <section class="stats-section">
+        <h2>Estadísticas por aplicación y publicación</h2>
+
+        <div class="stats-table-wrap">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th scope="col">Contenido</th>
+                <th scope="col">Valoración</th>
+                <th scope="col">Comentarios</th>
+                <th scope="col">Compartidos</th>
+                <th scope="col">Visitas</th>
+              </tr>
+            </thead>
+
+            <tbody id="statsContentBody">
+              <tr>
+                <td colspan="5" class="stats-empty">
+                  Los datos aparecerán cuando se conecten las fuentes correspondientes.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>Otras métricas</h2>
+
+        <div class="stats-two-columns">
+          <article class="stats-panel">
+            <h3>Participación</h3>
+            <ul class="stats-list">
+              <li>Solicitudes de amistad: pendiente</li>
+              <li>Publicaciones nuevas: pendiente</li>
+              <li>Sesiones de usuario: pendiente</li>
+              <li>Usuarios recurrentes: pendiente</li>
+            </ul>
+          </article>
+
+          <article class="stats-panel">
+            <h3>Rendimiento técnico</h3>
+            <ul class="stats-list">
+              <li>Errores registrados: pendiente</li>
+              <li>Tipos de dispositivo: pendiente</li>
+              <li>Navegadores utilizados: pendiente</li>
+              <li>Tiempo de carga: pendiente</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="stats-section">
+        <h2>Estado de las estadísticas</h2>
+
+        <div class="stats-notice">
+          <p id="statsStatus" role="status" aria-live="polite">
+            Las métricas reales están pendientes de conexión.
+          </p>
+
+          <p>
+            No se muestran cifras inventadas. La conexión requiere verificar
+            las tablas, columnas y políticas de seguridad de Supabase.
+          </p>
+        </div>
+      </section>
+
       <p>
-        No se muestran cifras inventadas. Para obtener datos fiables,
-        será necesario configurar las tablas, el registro de eventos
-        y las políticas de seguridad de Supabase.
+        <button id="logoutBtn" class="secondary" type="button">
+          Cerrar sesión
+        </button>
       </p>
-    </div>
-  </section>
+    </section>
 
-  <p>
-    <button id="logoutBtn" class="secondary" type="button">
-      Cerrar sesión
-    </button>
-  </p>
-</section>
-
-<p>
-  <a class="back" href="./">Volver a Nova Apps</a>
-</p>
-
+    <p>
+      <a class="back" href="./index.html">Volver a Nova Apps</a>
+    </p>
   </main>
 </body>
 </html>

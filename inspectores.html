@@ -3,36 +3,47 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101827">
   <meta name="description" content="Panel de gestión de inspectores de Nova Apps.">
-  <title>Inspectores | Nova Apps</title>
+  <title>Gestión de inspectores | Nova Apps</title>
+
   <link rel="stylesheet" href="css/inspectores.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/auth/session.js" defer></script>
   <script src="js/inspectores/inspectores.js" defer></script>
 </head>
 
 <body>
   <main class="contenedor">
     <header>
-      <a class="marca" href="index.html">NOVA <span>INSPECTORES</span></a>
+      <a class="marca" href="index.html" aria-label="Volver a Nova Apps">
+        NOVA <span>INSPECTORES</span>
+      </a>
       <a class="boton" href="index.html">← Nova Apps</a>
     </header>
 
-    <section>
-      <h1 class="titulo">Gestión de inspectores</h1>
+    <section aria-labelledby="tituloPrincipal">
+      <h1 class="titulo" id="tituloPrincipal">Gestión de inspectores</h1>
       <p class="suave">
-        Panel provisional para organizar los registros de inspectores.
+        Administración y consulta de registros de inspectores.
       </p>
     </section>
 
-    <div class="aviso">
+    <section class="aviso" aria-label="Estado del sistema">
       <strong>Modo de demostración.</strong>
-      Este panel no verifica la identidad ni los permisos de una cuenta.
-      Los datos se guardan en el navegador actual y no se comparten con
-      otros dispositivos. No introduzcas información personal real.
-    </div>
+      <p>
+        Los registros de esta versión se guardan únicamente en este navegador.
+        La autenticación y los permisos no están vinculados todavía a un sistema
+        de almacenamiento compartido para este módulo.
+      </p>
+      <p>
+        No introduzcas datos personales reales ni información confidencial.
+      </p>
+    </section>
 
-    <section class="rejilla" aria-label="Resumen">
+    <section class="rejilla" aria-label="Resumen de registros">
       <article class="panel">
         <span class="etiqueta">Total de registros</span>
         <strong class="numero" id="total">0</strong>
@@ -49,62 +60,101 @@
       </article>
     </section>
 
-    <section class="panel">
-      <button class="boton primario" type="button" id="abrirFormulario">
+    <section class="panel" aria-labelledby="tituloFormulario">
+      <button
+        class="boton primario"
+        type="button"
+        id="abrirFormulario"
+        aria-controls="formulario"
+        aria-expanded="false"
+      >
         + Registrar inspector de prueba
       </button>
 
-      <form class="formulario" id="formulario">
-        <h2 class="seccion-titulo">Nuevo registro de prueba</h2>
+      <form class="formulario" id="formulario" hidden>
+        <h2 class="seccion-titulo" id="tituloFormulario">
+          Nuevo registro de prueba
+        </h2>
 
         <div class="campo">
           <label for="nombre">Nombre o alias</label>
-          <input id="nombre" maxlength="60" required
-            autocomplete="off" placeholder="Ej.: Inspector 01">
+          <input
+            id="nombre"
+            name="nombre"
+            type="text"
+            maxlength="60"
+            autocomplete="off"
+            placeholder="Ej.: Inspector 01"
+            required
+          >
         </div>
 
         <div class="campo">
           <label for="codigo">Código interno de prueba</label>
-          <input id="codigo" maxlength="30" required
-            autocomplete="off" placeholder="Ej.: INS-001">
+          <input
+            id="codigo"
+            name="codigo"
+            type="text"
+            maxlength="30"
+            autocomplete="off"
+            placeholder="Ej.: INS-001"
+            required
+          >
         </div>
 
         <div class="campo">
           <label for="zona">Zona asignada</label>
-          <input id="zona" maxlength="80" required
-            autocomplete="off" placeholder="Ej.: Zona norte">
+          <input
+            id="zona"
+            name="zona"
+            type="text"
+            maxlength="80"
+            autocomplete="off"
+            placeholder="Ej.: Zona norte"
+            required
+          >
         </div>
 
         <div class="campo">
           <label for="estadoInicial">Estado inicial</label>
-          <select id="estadoInicial">
+          <select id="estadoInicial" name="estadoInicial">
             <option value="activo">Activo</option>
             <option value="inactivo">Inactivo</option>
           </select>
         </div>
 
-        <button class="boton primario" type="submit">
-          Guardar registro local
-        </button>
+        <div class="acciones-formulario">
+          <button class="boton primario" type="submit">
+            Guardar registro local
+          </button>
 
-        <button class="boton" type="button" id="cancelar">
-          Cancelar
-        </button>
+          <button class="boton" type="button" id="cancelar">
+            Cancelar
+          </button>
+        </div>
       </form>
     </section>
 
-    <section class="panel">
-      <h2 class="seccion-titulo">Inspectores registrados</h2>
+    <section class="panel" aria-labelledby="tituloLista">
+      <h2 class="seccion-titulo" id="tituloLista">
+        Inspectores registrados
+      </h2>
 
       <div class="filtros">
         <div class="campo">
           <label for="buscar">Buscar por nombre, código o zona</label>
-          <input id="buscar" type="search" placeholder="Buscar...">
+          <input
+            id="buscar"
+            name="buscar"
+            type="search"
+            autocomplete="off"
+            placeholder="Buscar..."
+          >
         </div>
 
         <div class="campo">
           <label for="filtroEstado">Filtrar por estado</label>
-          <select id="filtroEstado">
+          <select id="filtroEstado" name="filtroEstado">
             <option value="todos">Todos</option>
             <option value="activo">Activos</option>
             <option value="inactivo">Inactivos</option>
@@ -112,12 +162,23 @@
         </div>
       </div>
 
-      <div id="lista" class="lista" aria-live="polite"></div>
-      <p id="mensaje" class="estado-mensaje" aria-live="polite"></p>
+      <div
+        id="lista"
+        class="lista"
+        aria-live="polite"
+        aria-relevant="additions removals text"
+      ></div>
+
+      <p
+        id="mensaje"
+        class="estado-mensaje"
+        role="status"
+        aria-live="polite"
+      ></p>
     </section>
 
     <footer class="pie">
-      Nova Apps · Panel provisional · Sin conexión a Supabase.
+      Nova Apps · Panel provisional · Datos locales de demostración.
     </footer>
   </main>
 </body>
